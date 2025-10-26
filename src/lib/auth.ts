@@ -13,12 +13,19 @@ export const AUTH_KEYS = {
   USER: 'wordyfy_user',
   USER_ID: 'wordyfy_userId',
   LOGIN_TIME: 'wordyfy_loginTime',
-  REMEMBER_ME: 'wordyfy_rememberMe'
+  REMEMBER_ME: 'wordyfy_rememberMe',
+  SESSION_ID: 'wordyfy_sessionId'
+};
+
+// Generate a unique session ID
+const generateSessionId = () => {
+  return Date.now().toString(36) + Math.random().toString(36).substr(2);
 };
 
 // Store user data with optional remember me
 export const setUserSession = (user: User, rememberMe: boolean = false) => {
   const loginTime = new Date().toISOString();
+  const sessionId = generateSessionId();
   
   if (rememberMe) {
     // Store in localStorage for persistent login
@@ -26,12 +33,21 @@ export const setUserSession = (user: User, rememberMe: boolean = false) => {
     localStorage.setItem(AUTH_KEYS.USER_ID, user._id);
     localStorage.setItem(AUTH_KEYS.LOGIN_TIME, loginTime);
     localStorage.setItem(AUTH_KEYS.REMEMBER_ME, 'true');
+    localStorage.setItem(AUTH_KEYS.SESSION_ID, sessionId);
+    
+    // Also store in sessionStorage as backup
+    sessionStorage.setItem(AUTH_KEYS.USER, JSON.stringify(user));
+    sessionStorage.setItem(AUTH_KEYS.USER_ID, user._id);
+    sessionStorage.setItem(AUTH_KEYS.LOGIN_TIME, loginTime);
+    sessionStorage.setItem(AUTH_KEYS.REMEMBER_ME, 'true');
+    sessionStorage.setItem(AUTH_KEYS.SESSION_ID, sessionId);
   } else {
     // Store in sessionStorage for session-only login
     sessionStorage.setItem(AUTH_KEYS.USER, JSON.stringify(user));
     sessionStorage.setItem(AUTH_KEYS.USER_ID, user._id);
     sessionStorage.setItem(AUTH_KEYS.LOGIN_TIME, loginTime);
     sessionStorage.setItem(AUTH_KEYS.REMEMBER_ME, 'false');
+    sessionStorage.setItem(AUTH_KEYS.SESSION_ID, sessionId);
   }
 };
 
@@ -41,38 +57,37 @@ export const getUserSession = (): { user: User | null; userId: string | null; re
     return { user: null, userId: null, rememberMe: false };
   }
 
-  // Check localStorage first (remember me)
-  const rememberMe = localStorage.getItem(AUTH_KEYS.REMEMBER_ME) === 'true';
-  
-  if (rememberMe) {
+  // First, try to get from localStorage (persistent login)
+  try {
+    const rememberMe = localStorage.getItem(AUTH_KEYS.REMEMBER_ME) === 'true';
     const userStr = localStorage.getItem(AUTH_KEYS.USER);
     const userId = localStorage.getItem(AUTH_KEYS.USER_ID);
     
-    if (userStr && userId) {
-      try {
-        const user = JSON.parse(userStr);
-        return { user, userId, rememberMe: true };
-      } catch (error) {
-        console.error('Error parsing user data:', error);
-        clearUserSession();
-      }
+    if (userStr && userId && rememberMe) {
+      const user = JSON.parse(userStr);
+      console.log('🔐 Found persistent login session');
+      return { user, userId, rememberMe: true };
     }
-  } else {
-    // Check sessionStorage (session-only)
-    const userStr = sessionStorage.getItem(AUTH_KEYS.USER);
-    const userId = sessionStorage.getItem(AUTH_KEYS.USER_ID);
-    
-    if (userStr && userId) {
-      try {
-        const user = JSON.parse(userStr);
-        return { user, userId, rememberMe: false };
-      } catch (error) {
-        console.error('Error parsing user data:', error);
-        clearUserSession();
-      }
-    }
+  } catch (error) {
+    console.error('Error parsing localStorage user data:', error);
   }
 
+  // If no persistent login, try sessionStorage
+  try {
+    const userStr = sessionStorage.getItem(AUTH_KEYS.USER);
+    const userId = sessionStorage.getItem(AUTH_KEYS.USER_ID);
+    const rememberMe = sessionStorage.getItem(AUTH_KEYS.REMEMBER_ME) === 'true';
+    
+    if (userStr && userId) {
+      const user = JSON.parse(userStr);
+      console.log('🔐 Found session login');
+      return { user, userId, rememberMe };
+    }
+  } catch (error) {
+    console.error('Error parsing sessionStorage user data:', error);
+  }
+
+  console.log('🔐 No valid session found');
   return { user: null, userId: null, rememberMe: false };
 };
 
@@ -84,11 +99,44 @@ export const clearUserSession = () => {
   localStorage.removeItem(AUTH_KEYS.USER_ID);
   localStorage.removeItem(AUTH_KEYS.LOGIN_TIME);
   localStorage.removeItem(AUTH_KEYS.REMEMBER_ME);
+  localStorage.removeItem(AUTH_KEYS.SESSION_ID);
   
   sessionStorage.removeItem(AUTH_KEYS.USER);
   sessionStorage.removeItem(AUTH_KEYS.USER_ID);
   sessionStorage.removeItem(AUTH_KEYS.LOGIN_TIME);
   sessionStorage.removeItem(AUTH_KEYS.REMEMBER_ME);
+  sessionStorage.removeItem(AUTH_KEYS.SESSION_ID);
+  
+  console.log('🔐 User session cleared');
+};
+
+// Restore session from localStorage to sessionStorage (for mobile app reopening)
+export const restoreSession = () => {
+  if (typeof window === 'undefined') return false;
+  
+  try {
+    const rememberMe = localStorage.getItem(AUTH_KEYS.REMEMBER_ME) === 'true';
+    const userStr = localStorage.getItem(AUTH_KEYS.USER);
+    const userId = localStorage.getItem(AUTH_KEYS.USER_ID);
+    const loginTime = localStorage.getItem(AUTH_KEYS.LOGIN_TIME);
+    const sessionId = localStorage.getItem(AUTH_KEYS.SESSION_ID);
+    
+    if (userStr && userId && rememberMe) {
+      // Restore to sessionStorage
+      sessionStorage.setItem(AUTH_KEYS.USER, userStr);
+      sessionStorage.setItem(AUTH_KEYS.USER_ID, userId);
+      sessionStorage.setItem(AUTH_KEYS.LOGIN_TIME, loginTime || new Date().toISOString());
+      sessionStorage.setItem(AUTH_KEYS.REMEMBER_ME, 'true');
+      sessionStorage.setItem(AUTH_KEYS.SESSION_ID, sessionId || generateSessionId());
+      
+      console.log('🔄 Session restored from localStorage to sessionStorage');
+      return true;
+    }
+  } catch (error) {
+    console.error('Error restoring session:', error);
+  }
+  
+  return false;
 };
 
 // Check if user is logged in

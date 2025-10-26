@@ -10,7 +10,7 @@ import Link from 'next/link';
 import { saveWord, getStoredWords } from '@/lib/storage';
 import { Word } from '@/types/word';
 import InstallPrompt from '@/components/InstallPrompt';
-import { getUserSession, clearUserSession } from '@/lib/auth';
+import { getUserSession, clearUserSession, restoreSession } from '@/lib/auth';
 
 export default function Dashboard() {
   const [word, setWord] = useState('');
@@ -264,15 +264,20 @@ export default function Dashboard() {
   useEffect(() => {
     setMounted(true);
     
+    // Try to restore session first (for mobile app reopening)
+    const sessionRestored = restoreSession();
+    
     // Use persistent login system
     const { user: userData, userId: storedUserId, rememberMe } = getUserSession();
     
     if (userData && storedUserId) {
-        setUser(userData);
-        setUserId(storedUserId);
-        loadUserWords(storedUserId);
+      console.log('🔐 User session found:', rememberMe ? 'persistent' : 'session');
+      setUser(userData);
+      setUserId(storedUserId);
+      loadUserWords(storedUserId);
       loadQuizStats(storedUserId);
     } else {
+      console.log('🔐 No valid session found, redirecting to login');
       // No valid session found, redirect to login
       window.location.href = '/login';
     }

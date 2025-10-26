@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { Sentence, CreateSentenceRequest } from '@/types/sentence';
-import { getUserSession } from '@/lib/auth';
+import { getUserSession, restoreSession } from '@/lib/auth';
 
 export default function SentencesPage() {
   const [sentences, setSentences] = useState<Sentence[]>([]);
@@ -49,6 +49,9 @@ export default function SentencesPage() {
   });
 
   useEffect(() => {
+    // Try to restore session first (for mobile app reopening)
+    const sessionRestored = restoreSession();
+    
     const { userId: storedUserId } = getUserSession();
     if (storedUserId) {
       setUserId(storedUserId);
@@ -204,11 +207,15 @@ export default function SentencesPage() {
     if (!sentenceToDelete) return;
 
     try {
+      console.log('🗑️ Attempting to delete sentence:', sentenceToDelete._id);
+      console.log('👤 User ID:', userId);
+      
       const response = await fetch(`/api/sentences?id=${sentenceToDelete._id}&userId=${userId}`, {
         method: 'DELETE',
       });
 
       const data = await response.json();
+      console.log('📡 Delete response:', response.status, data);
 
       if (response.ok) {
         setSuccess('✅ Sentence deleted successfully!');
@@ -226,11 +233,16 @@ export default function SentencesPage() {
         // Clear success message after 3 seconds
         setTimeout(() => setSuccess(''), 3000);
       } else {
+        console.error('❌ Delete failed:', data);
         setError(data.error || 'Failed to delete sentence');
+        // Clear error message after 5 seconds
+        setTimeout(() => setError(''), 5000);
       }
     } catch (error) {
-      console.error('Error deleting sentence:', error);
+      console.error('❌ Error deleting sentence:', error);
       setError('Failed to delete sentence');
+      // Clear error message after 5 seconds
+      setTimeout(() => setError(''), 5000);
     } finally {
       setShowDeleteConfirm(false);
       setSentenceToDelete(null);
