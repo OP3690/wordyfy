@@ -339,48 +339,61 @@ export default function VaultPage() {
                       </div>
                     </div>
                     
-                    {/* Expanded Details - Minimal */}
+                    {/* Expanded Details - Enhanced */}
                     {isExpanded && (
                       <div className="mt-4 pt-4 border-t border-gray-100">
-                        <div className="space-y-3">
-                          {/* Definitions - Compact */}
+                        <div className="space-y-4">
+                          {/* All Meanings - Enhanced */}
                           {word.meanings && word.meanings.length > 0 && (
-                            <div className="space-y-2">
-                              {word.meanings.slice(0, 1).map((meaning: any, meaningIndex: number) => (
-                                <div key={meaningIndex} className="space-y-2">
+                            <div className="space-y-4">
+                              {word.meanings.map((meaning: any, meaningIndex: number) => (
+                                <div key={meaningIndex} className="space-y-3">
+                                  {/* Part of Speech */}
                                   <div className="flex items-center space-x-2">
-                                    <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-md">
+                                    <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-lg">
                                       {meaning.partOfSpeech}
                                     </span>
                                   </div>
-                                  {meaning.definitions.slice(0, 1).map((def: any, defIndex: number) => (
-                                    <div key={defIndex} className="space-y-1">
-                                      <p className="text-sm text-gray-800 leading-relaxed">
-                                        {def.definition}
+                                  
+                                  {/* All Definitions */}
+                                  {meaning.definitions.map((def: any, defIndex: number) => (
+                                    <div key={defIndex} className="space-y-2">
+                                      <p className="text-sm text-gray-800 leading-relaxed font-medium">
+                                        {defIndex + 1}. {def.definition}
                                       </p>
+                                      
+                                      {/* Examples */}
                                       {def.example && (
-                                        <div className="bg-gray-50 rounded-lg p-2">
-                                          <p className="text-xs text-gray-600 italic">
-                                            <span className="font-medium">Example:</span> {def.example}
-                                          </p>
-                                          {def.hindiExample && (
-                                            <p className="text-xs text-gray-500 italic mt-1">
-                                              <span className="font-medium">Hindi:</span> {def.hindiExample}
-                                            </p>
-                                          )}
+                                        <div className="bg-gray-50 rounded-lg p-3 border-l-4 border-blue-200">
+                                          <div className="flex items-start space-x-2">
+                                            <div className="w-2 h-2 bg-blue-400 rounded-full mt-2 flex-shrink-0"></div>
+                                            <div className="flex-1">
+                                              <p className="text-sm text-gray-700 italic mb-1">
+                                                <span className="font-semibold text-gray-600">Example:</span> {def.example}
+                                              </p>
+                                              {def.hindiExample && (
+                                                <p className="text-xs text-gray-600 italic">
+                                                  <span className="font-semibold text-gray-500">Hindi:</span> {def.hindiExample}
+                                                </p>
+                                              )}
+                                            </div>
+                                          </div>
                                         </div>
                                       )}
                                     </div>
                                   ))}
                                   
-                                  {/* Synonyms and Antonyms - Minimal */}
-                                  <div className="space-y-2">
+                                  {/* Synonyms and Antonyms - Enhanced */}
+                                  <div className="space-y-3">
                                     {meaning.synonyms && meaning.synonyms.length > 0 && (
-                                      <div className="bg-green-50 rounded-lg p-2">
-                                        <h6 className="text-xs font-medium text-green-700 mb-1">Synonyms</h6>
-                                        <div className="flex flex-wrap gap-1">
-                                          {meaning.synonyms.slice(0, 3).map((synonym: any, synIndex: number) => (
-                                            <span key={synIndex} className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-md">
+                                      <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-3 border border-green-200">
+                                        <div className="flex items-center space-x-2 mb-2">
+                                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                          <h6 className="text-sm font-semibold text-green-700">Synonyms</h6>
+                                        </div>
+                                        <div className="flex flex-wrap gap-2">
+                                          {meaning.synonyms.map((synonym: any, synIndex: number) => (
+                                            <span key={synIndex} className="px-3 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full border border-green-200 hover:bg-green-200 transition-colors">
                                               {typeof synonym === 'string' ? synonym.charAt(0).toUpperCase() + synonym.slice(1) : synonym.english?.charAt(0).toUpperCase() + synonym.english?.slice(1)}
                                             </span>
                                           ))}
@@ -389,11 +402,14 @@ export default function VaultPage() {
                                     )}
                                     
                                     {meaning.antonyms && meaning.antonyms.length > 0 && (
-                                      <div className="bg-red-50 rounded-lg p-2">
-                                        <h6 className="text-xs font-medium text-red-700 mb-1">Antonyms</h6>
-                                        <div className="flex flex-wrap gap-1">
-                                          {meaning.antonyms.slice(0, 3).map((antonym: any, antIndex: number) => (
-                                            <span key={antIndex} className="px-2 py-1 bg-red-100 text-red-700 text-xs rounded-md">
+                                      <div className="bg-gradient-to-r from-red-50 to-rose-50 rounded-lg p-3 border border-red-200">
+                                        <div className="flex items-center space-x-2 mb-2">
+                                          <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                                          <h6 className="text-sm font-semibold text-red-700">Antonyms</h6>
+                                        </div>
+                                        <div className="flex flex-wrap gap-2">
+                                          {meaning.antonyms.map((antonym: any, antIndex: number) => (
+                                            <span key={antIndex} className="px-3 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full border border-red-200 hover:bg-red-200 transition-colors">
                                               {typeof antonym === 'string' ? antonym.charAt(0).toUpperCase() + antonym.slice(1) : antonym.english?.charAt(0).toUpperCase() + antonym.english?.slice(1)}
                                             </span>
                                           ))}
@@ -403,6 +419,34 @@ export default function VaultPage() {
                                   </div>
                                 </div>
                               ))}
+                            </div>
+                          )}
+                          
+                          {/* Pronunciation Details */}
+                          {word.phonetics && word.phonetics.length > 0 && (
+                            <div className="bg-purple-50 rounded-lg p-3 border border-purple-200">
+                              <div className="flex items-center space-x-2 mb-2">
+                                <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                                <h6 className="text-sm font-semibold text-purple-700">Pronunciation</h6>
+                              </div>
+                              <div className="space-y-1">
+                                {word.phonetics.map((phonetic: any, index: number) => (
+                                  <div key={index} className="flex items-center space-x-2">
+                                    <span className="text-sm text-purple-800 font-mono">{phonetic.text}</span>
+                                    {phonetic.audio && (
+                                      <button
+                                        onClick={() => {
+                                          const audio = new Audio(phonetic.audio);
+                                          audio.play().catch(() => {});
+                                        }}
+                                        className="p-1 text-purple-600 hover:text-purple-800 hover:bg-purple-100 rounded transition-colors"
+                                      >
+                                        <Volume2 className="h-3 w-3" />
+                                      </button>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
                             </div>
                           )}
                         </div>

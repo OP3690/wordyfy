@@ -89,7 +89,7 @@ export default function Dashboard() {
       return;
     }
 
-    const lowerWord = word.toLowerCase();
+    const lowerWord = word.toLowerCase().trim();
     
     // Check common misspellings first
     if (commonMisspellings[lowerWord]) {
@@ -100,21 +100,38 @@ export default function Dashboard() {
     }
 
     try {
-      const response = await fetch(`https://api.datamuse.com/words?sp=${lowerWord}&max=5`);
-      const data = await response.json();
+      // Try multiple API endpoints for better suggestions
+      const responses = await Promise.allSettled([
+        fetch(`https://api.datamuse.com/words?sp=${lowerWord}&max=5`),
+        fetch(`https://api.datamuse.com/words?ml=${lowerWord}&max=3`),
+        fetch(`https://api.datamuse.com/words?rel_syn=${lowerWord}&max=3`)
+      ]);
       
-      if (data && data.length > 0) {
-        const suggestions = data.map((item: any) => item.word).filter((suggestion: string) => 
-          suggestion.toLowerCase() !== lowerWord
-        );
-        setSuggestions(suggestions);
-        setShowSuggestions(suggestions.length > 0);
-        setIsValidWord(suggestions.length === 0);
-      } else {
-        setSuggestions([]);
-        setShowSuggestions(false);
-        setIsValidWord(true);
-      }
+      let allSuggestions: string[] = [];
+      
+      responses.forEach((response) => {
+        if (response.status === 'fulfilled' && response.value.ok) {
+          response.value.json().then((data: any) => {
+            if (data && data.length > 0) {
+              const words = data.map((item: any) => item.word).filter((suggestion: string) => 
+                suggestion.toLowerCase() !== lowerWord && 
+                suggestion.length > 1 &&
+                !allSuggestions.includes(suggestion.toLowerCase())
+              );
+              allSuggestions = [...allSuggestions, ...words];
+            }
+          }).catch(() => {});
+        }
+      });
+      
+      // Wait a bit for all responses to process
+      setTimeout(() => {
+        const uniqueSuggestions = [...new Set(allSuggestions)].slice(0, 5);
+        setSuggestions(uniqueSuggestions);
+        setShowSuggestions(uniqueSuggestions.length > 0);
+        setIsValidWord(uniqueSuggestions.length === 0);
+      }, 500);
+      
     } catch (error) {
       console.error('Error fetching suggestions:', error);
       setSuggestions([]);
@@ -389,17 +406,23 @@ export default function Dashboard() {
               </button>
             </div>
             
-                {/* Suggestions Dropdown - Minimal */}
+                {/* Suggestions Dropdown - Enhanced */}
                 {showSuggestions && suggestions.length > 0 && (
-                  <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-xl shadow-lg border border-gray-200 z-50 max-h-32 overflow-y-auto">
-                    <div className="p-1">
+                  <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-200 z-50 max-h-40 overflow-y-auto animate-slideInDown">
+                    <div className="p-2">
+                      <div className="text-xs text-gray-500 px-2 py-1 font-medium">Did you mean:</div>
                       {suggestions.map((suggestion, index) => (
                       <button
                           key={index}
                           onClick={() => handleSuggestionClick(suggestion)}
-                          className="w-full text-left px-3 py-2 hover:bg-gray-50 rounded-lg transition-colors text-sm"
+                          className="w-full text-left px-3 py-2.5 hover:bg-blue-50 rounded-lg transition-all duration-150 text-sm font-medium text-gray-800 hover:text-blue-700 flex items-center space-x-2 group"
                         >
-                          {suggestion.charAt(0).toUpperCase() + suggestion.slice(1)}
+                          <span className="flex-1">{suggestion.charAt(0).toUpperCase() + suggestion.slice(1)}</span>
+                          <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                            <svg className="h-4 w-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                    </div>
                       </button>
                       ))}
                           </div>
@@ -459,67 +482,83 @@ export default function Dashboard() {
                     </div>
                   </div>
 
-              {/* Meanings - Compact */}
+              {/* Meanings - Enhanced */}
               {currentWordData.meanings && currentWordData.meanings.length > 0 && (
-                <div className="space-y-2">
-                  {currentWordData.meanings.slice(0, 1).map((meaning: any, meaningIndex: number) => (
-                    <div key={meaningIndex} className="space-y-2">
-                        <div className="flex items-center space-x-2">
-                        <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-md">
-                                {meaning.partOfSpeech}
-                              </span>
-                            </div>
-                      {meaning.definitions.slice(0, 1).map((def: any, defIndex: number) => (
-                        <div key={defIndex} className="space-y-1">
-                          <p className="text-sm text-gray-800 leading-relaxed">
-                                    {def.definition}
+                <div className="space-y-3">
+                  {currentWordData.meanings.map((meaning: any, meaningIndex: number) => (
+                    <div key={meaningIndex} className="space-y-3">
+                      {/* Part of Speech */}
+                      <div className="flex items-center space-x-2">
+                        <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-lg">
+                          {meaning.partOfSpeech}
+                        </span>
+                      </div>
+                      
+                      {/* All Definitions */}
+                      {meaning.definitions.map((def: any, defIndex: number) => (
+                        <div key={defIndex} className="space-y-2">
+                          <p className="text-sm text-gray-800 leading-relaxed font-medium">
+                            {defIndex + 1}. {def.definition}
+                          </p>
+                          
+                          {/* Examples */}
+                          {def.example && (
+                            <div className="bg-gray-50 rounded-lg p-3 border-l-4 border-blue-200">
+                              <div className="flex items-start space-x-2">
+                                <div className="w-2 h-2 bg-blue-400 rounded-full mt-2 flex-shrink-0"></div>
+                                <div className="flex-1">
+                                  <p className="text-sm text-gray-700 italic mb-1">
+                                    <span className="font-semibold text-gray-600">Example:</span> {def.example}
                                   </p>
-                                  {def.example && (
-                            <div className="bg-gray-50 rounded-lg p-2">
-                              <p className="text-xs text-gray-600 italic">
-                                <span className="font-medium">Example:</span> {def.example}
-                              </p>
-                              {def.hindiExample && (
-                                <p className="text-xs text-gray-500 italic mt-1">
-                                  <span className="font-medium">Hindi:</span> {def.hindiExample}
-                                </p>
-                              )}
-                                    </div>
+                                  {def.hindiExample && (
+                                    <p className="text-xs text-gray-600 italic">
+                                      <span className="font-semibold text-gray-500">Hindi:</span> {def.hindiExample}
+                                    </p>
                                   )}
                                 </div>
-                              ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ))}
                       
-                      {/* Synonyms and Antonyms - Minimal */}
-                      <div className="space-y-2">
+                      {/* Synonyms and Antonyms - Enhanced */}
+                      <div className="space-y-3">
                         {meaning.synonyms && meaning.synonyms.length > 0 && (
-                          <div className="bg-green-50 rounded-lg p-2">
-                            <h6 className="text-xs font-medium text-green-700 mb-1">Synonyms</h6>
-                            <div className="flex flex-wrap gap-1">
-                              {meaning.synonyms.slice(0, 3).map((synonym: any, synIndex: number) => (
-                                <span key={synIndex} className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-md">
+                          <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-3 border border-green-200">
+                            <div className="flex items-center space-x-2 mb-2">
+                              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                              <h6 className="text-sm font-semibold text-green-700">Synonyms</h6>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              {meaning.synonyms.map((synonym: any, synIndex: number) => (
+                                <span key={synIndex} className="px-3 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full border border-green-200 hover:bg-green-200 transition-colors">
                                   {typeof synonym === 'string' ? synonym.charAt(0).toUpperCase() + synonym.slice(1) : synonym.english?.charAt(0).toUpperCase() + synonym.english?.slice(1)}
                                 </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                        {meaning.antonyms && meaning.antonyms.length > 0 && (
-                          <div className="bg-red-50 rounded-lg p-2">
-                            <h6 className="text-xs font-medium text-red-700 mb-1">Antonyms</h6>
-                            <div className="flex flex-wrap gap-1">
-                              {meaning.antonyms.slice(0, 3).map((antonym: any, antIndex: number) => (
-                                <span key={antIndex} className="px-2 py-1 bg-red-100 text-red-700 text-xs rounded-md">
-                                  {typeof antonym === 'string' ? antonym.charAt(0).toUpperCase() + antonym.slice(1) : antonym.english?.charAt(0).toUpperCase() + antonym.english?.slice(1)}
-                          </span>
                               ))}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {meaning.antonyms && meaning.antonyms.length > 0 && (
+                          <div className="bg-gradient-to-r from-red-50 to-rose-50 rounded-lg p-3 border border-red-200">
+                            <div className="flex items-center space-x-2 mb-2">
+                              <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                              <h6 className="text-sm font-semibold text-red-700">Antonyms</h6>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              {meaning.antonyms.map((antonym: any, antIndex: number) => (
+                                <span key={antIndex} className="px-3 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full border border-red-200 hover:bg-red-200 transition-colors">
+                                  {typeof antonym === 'string' ? antonym.charAt(0).toUpperCase() + antonym.slice(1) : antonym.english?.charAt(0).toUpperCase() + antonym.english?.slice(1)}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
-                  )}
-                </div>
-              </div>
                   ))}
-                  </div>
+                </div>
               )}
             </div>
           </div>
