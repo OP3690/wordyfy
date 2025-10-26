@@ -207,6 +207,8 @@ function generateDefinitions(englishWord: string, hindiTranslation: string): Wor
       {
         definition: 'An electronic device for storing and processing data, typically in binary form',
         example: 'My computer crashed while I was working on an important project.',
+        synonyms: [],
+        antonyms: []
       },
       {
         definition: 'A person who makes calculations or computations',
@@ -225,6 +227,8 @@ function generateDefinitions(englishWord: string, hindiTranslation: string): Wor
       {
         definition: 'The process of receiving or giving systematic instruction, especially at a school or university',
         example: 'Education is the key to success in life.',
+        synonyms: [],
+        antonyms: []
       },
       {
         definition: 'The theory and practice of teaching',
@@ -243,6 +247,8 @@ function generateDefinitions(englishWord: string, hindiTranslation: string): Wor
       {
         definition: 'Facts, information, and skills acquired through experience or education',
         example: 'Knowledge is power, but wisdom is even more valuable.',
+        synonyms: [],
+        antonyms: []
       },
       {
         definition: 'The theoretical or practical understanding of a subject',
@@ -261,10 +267,14 @@ function generateDefinitions(englishWord: string, hindiTranslation: string): Wor
       {
         definition: 'The acquisition of knowledge or skills through study, experience, or being taught',
         example: 'Learning never stops, even after graduation.',
+        synonyms: [],
+        antonyms: []
       },
       {
         definition: 'Knowledge acquired through experience, study, or being taught',
         example: 'The learning process can be challenging but rewarding.',
+        synonyms: [],
+        antonyms: []
       },
       {
         definition: 'The cognitive process of acquiring skill or knowledge',
@@ -277,6 +287,8 @@ function generateDefinitions(englishWord: string, hindiTranslation: string): Wor
       {
         definition: 'The earth, together with all of its countries, peoples, and natural features',
         example: 'The world is becoming more connected through technology.',
+        synonyms: [],
+        antonyms: []
       },
       {
         definition: 'A particular region or group of countries',
@@ -307,118 +319,118 @@ function generateExamples(englishWord: string, hindiTranslation: string): WordEx
   const exampleMap: { [key: string]: WordExample[] } = {
     'generation': [
       {
-        english: "We should look after the planet for future generations.",
-        hindi: "हमें भविष्य की पीढ़ियों के लिए ग्रह की देखभाल करनी चाहिए।",
+        sentence: "We should look after the planet for future generations.",
+        translation: "हमें भविष्य की पीढ़ियों के लिए ग्रह की देखभाल करनी चाहिए।",
       },
       {
-        english: "This photograph shows three generations of my family - children, parents and grandparents.",
-        hindi: "यह तस्वीर मेरे परिवार की तीन पीढ़ियों को दिखाती है - बच्चे, माता-पिता और दादा-दादी।",
+        sentence: "This photograph shows three generations of my family - children, parents and grandparents.",
+        translation: "यह तस्वीर मेरे परिवार की तीन पीढ़ियों को दिखाती है - बच्चे, माता-पिता और दादा-दादी।",
       },
       {
-        english: "A generation ago, foreign travel was still only possible for a few people.",
-        hindi: "एक पीढ़ी पहले, विदेश यात्रा अभी भी कुछ लोगों के लिए ही संभव थी।",
+        sentence: "A generation ago, foreign travel was still only possible for a few people.",
+        translation: "एक पीढ़ी पहले, विदेश यात्रा अभी भी कुछ लोगों के लिए ही संभव थी।",
       },
       {
-        english: "The new generation of smartphones has better cameras.",
-        hindi: "स्मार्टफोन की नई पीढ़ी में बेहतर कैमरे हैं।",
+        sentence: "The new generation of smartphones has better cameras.",
+        translation: "स्मार्टफोन की नई पीढ़ी में बेहतर कैमरे हैं।",
       }
     ],
     'proxy': [
       {
-        english: "He acted as a proxy for the company during the meeting.",
-        hindi: "बैठक के दौरान उन्होंने कंपनी के लिए प्रतिनिधि के रूप में काम किया।",
+        sentence: "He acted as a proxy for the company during the meeting.",
+        translation: "बैठक के दौरान उन्होंने कंपनी के लिए प्रतिनिधि के रूप में काम किया।",
       },
       {
-        english: "The proxy server helps protect your privacy online.",
-        hindi: "प्रॉक्सी सर्वर आपकी ऑनलाइन गोपनीयता की रक्षा करने में मदद करता है।",
+        sentence: "The proxy server helps protect your privacy online.",
+        translation: "प्रॉक्सी सर्वर आपकी ऑनलाइन गोपनीयता की रक्षा करने में मदद करता है।",
       },
       {
-        english: "She voted by proxy since she couldn't attend the meeting.",
-        hindi: "चूंकि वह बैठक में शामिल नहीं हो सकी, उसने प्रॉक्सी के माध्यम से वोट दिया।",
+        sentence: "She voted by proxy since she couldn't attend the meeting.",
+        translation: "चूंकि वह बैठक में शामिल नहीं हो सकी, उसने प्रॉक्सी के माध्यम से वोट दिया।",
       }
     ],
     'beautiful': [
       {
-        english: "The sunset over the mountains was absolutely beautiful.",
-        hindi: "पहाड़ों पर सूर्यास्त बिल्कुल सुंदर था।",
+        sentence: "The sunset over the mountains was absolutely beautiful.",
+        translation: "पहाड़ों पर सूर्यास्त बिल्कुल सुंदर था।",
       },
       {
-        english: "She has a beautiful voice that captivates everyone.",
-        hindi: "उसकी आवाज़ बहुत सुंदर है जो सभी को मोहित कर देती है।",
+        sentence: "She has a beautiful voice that captivates everyone.",
+        translation: "उसकी आवाज़ बहुत सुंदर है जो सभी को मोहित कर देती है।",
       },
       {
-        english: "The beautiful architecture of the old building amazed the tourists.",
-        hindi: "पुरानी इमारत की सुंदर वास्तुकला ने पर्यटकों को आश्चर्यचकित कर दिया।",
+        sentence: "The beautiful architecture of the old building amazed the tourists.",
+        translation: "पुरानी इमारत की सुंदर वास्तुकला ने पर्यटकों को आश्चर्यचकित कर दिया।",
       }
     ],
     'computer': [
       {
-        english: "My computer crashed while I was working on an important project.",
-        hindi: "मेरा कंप्यूटर तब क्रैश हो गया जब मैं एक महत्वपूर्ण प्रोजेक्ट पर काम कर रहा था।",
+        sentence: "My computer crashed while I was working on an important project.",
+        translation: "मेरा कंप्यूटर तब क्रैश हो गया जब मैं एक महत्वपूर्ण प्रोजेक्ट पर काम कर रहा था।",
       },
       {
-        english: "The computer lab has the latest technology for students.",
-        hindi: "कंप्यूटर लैब में छात्रों के लिए नवीनतम तकनीक है।",
+        sentence: "The computer lab has the latest technology for students.",
+        translation: "कंप्यूटर लैब में छात्रों के लिए नवीनतम तकनीक है।",
       },
       {
-        english: "She learned to program on her father's computer.",
-        hindi: "उसने अपने पिता के कंप्यूटर पर प्रोग्रामिंग सीखी।",
+        sentence: "She learned to program on her father's computer.",
+        translation: "उसने अपने पिता के कंप्यूटर पर प्रोग्रामिंग सीखी।",
       }
     ],
     'education': [
       {
-        english: "Education is the key to success in life.",
-        hindi: "शिक्षा जीवन में सफलता की कुंजी है।",
+        sentence: "Education is the key to success in life.",
+        translation: "शिक्षा जीवन में सफलता की कुंजी है।",
       },
       {
-        english: "The government is investing more in education this year.",
-        hindi: "सरकार इस साल शिक्षा में अधिक निवेश कर रही है।",
+        sentence: "The government is investing more in education this year.",
+        translation: "सरकार इस साल शिक्षा में अधिक निवेश कर रही है।",
       },
       {
-        english: "Online education has become very popular during the pandemic.",
-        hindi: "महामारी के दौरान ऑनलाइन शिक्षा बहुत लोकप्रिय हो गई है।",
+        sentence: "Online education has become very popular during the pandemic.",
+        translation: "महामारी के दौरान ऑनलाइन शिक्षा बहुत लोकप्रिय हो गई है।",
       }
     ],
     'knowledge': [
       {
-        english: "Knowledge is power, but wisdom is even more valuable.",
-        hindi: "ज्ञान शक्ति है, लेकिन बुद्धि और भी मूल्यवान है।",
+        sentence: "Knowledge is power, but wisdom is even more valuable.",
+        translation: "ज्ञान शक्ति है, लेकिन बुद्धि और भी मूल्यवान है।",
       },
       {
-        english: "She has extensive knowledge of ancient history.",
-        hindi: "उसे प्राचीन इतिहास का व्यापक ज्ञान है।",
+        sentence: "She has extensive knowledge of ancient history.",
+        translation: "उसे प्राचीन इतिहास का व्यापक ज्ञान है।",
       },
       {
-        english: "Sharing knowledge with others helps everyone grow.",
-        hindi: "दूसरों के साथ ज्ञान साझा करना सभी को बढ़ने में मदद करता है।",
+        sentence: "Sharing knowledge with others helps everyone grow.",
+        translation: "दूसरों के साथ ज्ञान साझा करना सभी को बढ़ने में मदद करता है।",
       }
     ],
     'learning': [
       {
-        english: "Learning never stops, even after graduation.",
-        hindi: "स्नातक के बाद भी सीखना कभी नहीं रुकता।",
+        sentence: "Learning never stops, even after graduation.",
+        translation: "स्नातक के बाद भी सीखना कभी नहीं रुकता।",
       },
       {
-        english: "The learning process can be challenging but rewarding.",
-        hindi: "सीखने की प्रक्रिया चुनौतीपूर्ण हो सकती है लेकिन फायदेमंद भी।",
+        sentence: "The learning process can be challenging but rewarding.",
+        translation: "सीखने की प्रक्रिया चुनौतीपूर्ण हो सकती है लेकिन फायदेमंद भी।",
       },
       {
-        english: "Active learning helps students retain information better.",
-        hindi: "सक्रिय सीखना छात्रों को जानकारी को बेहतर तरीके से याद रखने में मदद करता है।",
+        sentence: "Active learning helps students retain information better.",
+        translation: "सक्रिय सीखना छात्रों को जानकारी को बेहतर तरीके से याद रखने में मदद करता है।",
       }
     ],
     'world': [
       {
-        english: "The world is becoming more connected through technology.",
-        hindi: "दुनिया तकनीक के माध्यम से अधिक जुड़ी हुई हो रही है।",
+        sentence: "The world is becoming more connected through technology.",
+        translation: "दुनिया तकनीक के माध्यम से अधिक जुड़ी हुई हो रही है।",
       },
       {
-        english: "Traveling the world broadens your perspective on life.",
-        hindi: "दुनिया की यात्रा करना जीवन के प्रति आपके दृष्टिकोण को व्यापक बनाता है।",
+        sentence: "Traveling the world broadens your perspective on life.",
+        translation: "दुनिया की यात्रा करना जीवन के प्रति आपके दृष्टिकोण को व्यापक बनाता है।",
       },
       {
-        english: "The world's population continues to grow rapidly.",
-        hindi: "दुनिया की जनसंख्या तेजी से बढ़ती जा रही है।",
+        sentence: "The world's population continues to grow rapidly.",
+        translation: "दुनिया की जनसंख्या तेजी से बढ़ती जा रही है।",
       }
     ]
   };
@@ -466,19 +478,6 @@ function generateSynonyms(englishWord: string): string[] {
 function generateAntonyms(englishWord: string): string[] {
   const antonymMap: { [key: string]: string[] } = {
     'beautiful': ['ugly', 'unattractive', 'plain', 'hideous', 'repulsive', 'disgusting'],
-    'knowledge': ['ignorance', 'unawareness', 'confusion', 'misunderstanding', 'illiteracy'],
-    'learning': ['forgetting', 'ignorance', 'unlearning', 'disregard', 'neglect'],
-    'good': ['bad', 'evil', 'wicked', 'wrong', 'harmful', 'detrimental'],
-    'bad': ['good', 'excellent', 'wonderful', 'great', 'beneficial', 'positive'],
-    'big': ['small', 'tiny', 'little', 'miniature', 'compact', 'diminutive'],
-    'small': ['big', 'large', 'huge', 'enormous', 'giant', 'massive'],
-    'fast': ['slow', 'sluggish', 'gradual', 'delayed', 'leisurely', 'tardy'],
-    'slow': ['fast', 'quick', 'rapid', 'swift', 'speedy', 'brisk'],
-    'happy': ['sad', 'unhappy', 'depressed', 'miserable', 'gloomy', 'melancholy'],
-    'sad': ['happy', 'joyful', 'cheerful', 'glad', 'delighted', 'ecstatic'],
-    'love': ['hate', 'despise', 'loathe', 'detest', 'abhor', 'dislike'],
-    'hate': ['love', 'adore', 'cherish', 'treasure', 'admire', 'affection'],
-    'beautiful': ['ugly', 'unattractive', 'plain', 'hideous', 'repulsive'],
     'knowledge': ['ignorance', 'unawareness', 'confusion', 'misunderstanding'],
     'learning': ['forgetting', 'ignorance', 'unlearning', 'disregard'],
     'generation': ['individual', 'single', 'one', 'alone', 'isolated'],
