@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { saveWord, getStoredWords } from '@/lib/storage';
 import { Word } from '@/types/word';
 import { translateToHindi } from '@/lib/translate';
+import InstallPrompt from '@/components/InstallPrompt';
 
 export default function Dashboard() {
   const [word, setWord] = useState('');
@@ -1185,6 +1186,9 @@ export default function Dashboard() {
 
         </div>
       </main>
+      
+      {/* Install Prompt */}
+      <InstallPrompt />
     </div>
   );
 }
