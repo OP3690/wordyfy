@@ -431,23 +431,22 @@ export default function SentencesPage() {
             <div className="flex items-center space-x-4">
               <Link
                 href="/dashboard"
-                className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
+                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
               >
                 <ArrowLeft className="h-5 w-5" />
-                <span className="text-sm font-medium">Back to Dashboard</span>
               </Link>
               <div className="h-6 w-px bg-gray-300"></div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900 flex items-center space-x-2">
-                  <MessageSquare className="h-6 w-6 text-purple-600" />
+                <h1 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
+                  <MessageSquare className="h-5 w-5 text-purple-600" />
                   <span>My Sentences</span>
                 </h1>
-                <p className="text-gray-600 mt-1">Store quotes, sentences, and text snippets</p>
+                <p className="text-sm text-gray-600 mt-1">Store quotes, sentences, and text snippets</p>
               </div>
             </div>
             <button
               onClick={() => setShowAddForm(true)}
-              className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-2 rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all font-semibold flex items-center space-x-2"
+              className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-3 py-1.5 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all font-medium flex items-center space-x-1.5 text-sm"
             >
               <Plus className="h-4 w-4" />
               <span>Add Sentence</span>
@@ -480,7 +479,7 @@ export default function SentencesPage() {
         {showAddForm ? (
           <div className="bg-white rounded-xl p-6 mb-6 shadow-sm">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Add New Sentence</h3>
+              <h3 className="text-base font-semibold text-gray-900">Add New Sentence</h3>
               <button
                 onClick={() => setShowAddForm(false)}
                 className="text-gray-400 hover:text-gray-600 transition-colors"
@@ -559,7 +558,7 @@ export default function SentencesPage() {
                 <button
                   type="submit"
                   disabled={adding || !newSentence.text.trim()}
-                  className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all font-semibold disabled:opacity-50 flex items-center space-x-2"
+                  className="px-3 py-1.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all font-medium disabled:opacity-50 flex items-center space-x-1.5 text-sm"
                 >
                   {adding ? (
                     <>

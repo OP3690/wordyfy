@@ -159,7 +159,7 @@ export default function QuizPage() {
     try {
       const userId = localStorage.getItem('userId');
       if (!userId) return;
-
+      
       const accuracy = Math.round((finalScore / totalQuestions) * 100);
       
       const response = await fetch('/api/quiz-stats', {
@@ -167,7 +167,7 @@ export default function QuizPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
+        body: JSON.stringify({ 
           userId,
           quizScore: finalScore,
           totalQuestions,
@@ -175,7 +175,7 @@ export default function QuizPage() {
           quizQuestions
         }),
       });
-
+      
       if (response.ok) {
         console.log('✅ Quiz stats saved successfully');
         // Dispatch custom event to notify dashboard of stats update
@@ -199,7 +199,7 @@ export default function QuizPage() {
       question: currentQ,
       isCorrect: isCorrect
     }]);
-
+    
     if (currentQuestion < questions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
       setSelectedAnswer(null);
@@ -207,6 +207,11 @@ export default function QuizPage() {
       setTimeLeft(15);
       setTimerActive(true);
       setWordsCompleted(wordsCompleted + 1);
+      
+      // Auto-scroll to top of question for better mobile experience
+      setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }, 100);
     } else {
       // Quiz completed - save stats with quiz results
       const finalResults = [...quizResults, {
@@ -318,13 +323,13 @@ export default function QuizPage() {
           <h2 className="text-lg font-semibold text-gray-900 mb-2">Quiz Error</h2>
           <p className="text-sm text-gray-600 mb-6">{error}</p>
           <div className="space-y-2">
-            <button
+          <button
               onClick={() => window.location.reload()}
               className="w-full px-4 py-2.5 bg-blue-500 text-white text-sm font-medium rounded-xl hover:bg-blue-600 transition-colors flex items-center justify-center space-x-2"
-            >
+          >
               <RefreshCw className="h-4 w-4" />
               <span>Try Again</span>
-            </button>
+          </button>
             <Link
               href="/dashboard"
               className="block w-full px-4 py-2.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-xl hover:bg-gray-200 transition-colors text-center"
@@ -357,15 +362,15 @@ export default function QuizPage() {
     );
   }
 
-  if (gameCompleted) {
-    return (
+      if (gameCompleted) {
+        return (
       <div className="min-h-screen bg-gray-50">
         <div className="flex items-center justify-center min-h-screen px-4">
           <div className="bg-white rounded-2xl p-6 max-w-sm w-full text-center shadow-sm">
             {/* Success Animation */}
             <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <Trophy className="h-8 w-8 text-green-600" />
-            </div>
+              </div>
             
             <h1 className="text-xl font-semibold text-gray-900 mb-2">Quiz Complete!</h1>
             <p className="text-sm text-gray-600 mb-4">{getScoreMessage()}</p>
@@ -377,19 +382,19 @@ export default function QuizPage() {
               <div className={`text-lg font-semibold ${getScoreColor()}`}>
                 {Math.round((score / questions.length) * 100)}%
               </div>
-            </div>
-            
+              </div>
+              
             {/* Action Buttons */}
             <div className="space-y-2">
-              <button
-                onClick={handleRestart}
+                <button
+                  onClick={handleRestart}
                 className="w-full px-4 py-2.5 bg-blue-500 text-white text-sm font-medium rounded-xl hover:bg-blue-600 transition-colors flex items-center justify-center space-x-2"
-              >
+                >
                 <RotateCcw className="h-4 w-4" />
-                <span>Play Again</span>
-              </button>
-              <Link
-                href="/dashboard"
+                  <span>Play Again</span>
+                </button>
+                <Link
+                  href="/dashboard"
                 onClick={() => {
                   // Force refresh dashboard stats
                   if (typeof window !== 'undefined') {
@@ -399,17 +404,17 @@ export default function QuizPage() {
                 className="block w-full px-4 py-2.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-xl hover:bg-gray-200 transition-colors"
               >
                 Back to Dashboard
-              </Link>
+                </Link>
             </div>
           </div>
         </div>
       </div>
     );
   }
-
+  
   const currentQ = questions[currentQuestion];
 
-  return (
+    return (
     <div className="min-h-screen bg-gray-50">
       {/* Header - App-like */}
       <header className="sticky top-0 z-50 bg-white border-b border-gray-200">
@@ -422,14 +427,14 @@ export default function QuizPage() {
               <div>
                 <h1 className="text-lg font-semibold text-gray-900">Quiz</h1>
                 <p className="text-xs text-gray-500">{currentQuestion + 1} of {questions.length}</p>
-              </div>
+          </div>
             </div>
             <div className="text-right">
               <div className="text-sm font-semibold text-blue-600">{score}/{questions.length}</div>
               <div className="text-xs text-gray-500">Score</div>
             </div>
           </div>
-        </div>
+          </div>
       </header>
 
       {/* Progress Bar */}
@@ -439,10 +444,10 @@ export default function QuizPage() {
             className="bg-blue-500 h-2 rounded-full transition-all duration-300"
             style={{ width: `${((currentQuestion + 1) / questions.length) * 100}%` }}
           ></div>
-        </div>
-      </div>
-
-      {/* Timer */}
+                </div>
+              </div>
+              
+              {/* Timer */}
       <div className="px-4 py-3 bg-white border-b border-gray-100">
         <div className="flex items-center justify-center">
           <div className={`inline-flex items-center space-x-2 px-3 py-1.5 rounded-xl ${
@@ -453,26 +458,26 @@ export default function QuizPage() {
             <Timer className="h-4 w-4" />
             <span className="text-sm font-semibold">{timeLeft}s</span>
           </div>
-        </div>
-      </div>
-
+                </div>
+              </div>
+              
       {/* Question Card */}
-      <div className="px-4 py-4">
-        <div className="bg-white rounded-2xl p-6">
-          <div className="text-center mb-6">
-            <div className="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <Brain className="h-6 w-6 text-blue-600" />
-            </div>
-            <h2 className="text-base font-semibold text-gray-900 mb-3">
+      <div className="px-3 py-3">
+        <div className="bg-white rounded-xl p-4">
+          <div className="text-center mb-4">
+            <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-3">
+              <Brain className="h-5 w-5 text-blue-600" />
+              </div>
+            <h2 className="text-sm font-semibold text-gray-900 mb-2">
               What is the Hindi translation for:
             </h2>
-            <div className="flex items-center justify-center space-x-3 mb-4">
-              <h3 className="text-xl font-bold text-blue-600">
+            <div className="flex items-center justify-center space-x-2 mb-3">
+              <h3 className="text-lg font-bold text-blue-600">
                 {currentQ.englishWord.charAt(0).toUpperCase() + currentQ.englishWord.slice(1)}
               </h3>
               <button
                 onClick={() => playPronunciation(currentQ.englishWord, false)}
-                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
               >
                 <Volume2 className="h-4 w-4" />
               </button>
@@ -480,9 +485,9 @@ export default function QuizPage() {
           </div>
 
           {/* Answer Options */}
-          <div className="space-y-3">
+          <div className="space-y-2">
             {currentQ.options.map((option, index) => {
-              let buttonClass = "w-full p-4 text-left rounded-xl font-medium text-sm transition-all ";
+              let buttonClass = "w-full p-3 text-left rounded-lg font-medium text-sm transition-all ";
               
               if (showResult) {
                 if (option.text === currentQ.correctAnswer) {
@@ -519,8 +524,8 @@ export default function QuizPage() {
 
           {/* Result Message */}
           {showResult && (
-            <div className="mt-6 text-center">
-              <div className={`inline-flex items-center space-x-2 px-4 py-2 rounded-xl text-sm font-medium ${
+            <div className="mt-4 text-center">
+              <div className={`inline-flex items-center space-x-2 px-3 py-1.5 rounded-lg text-sm font-medium ${
                 selectedAnswer === currentQ.correctAnswer 
                   ? 'bg-green-100 text-green-800' 
                   : 'bg-red-100 text-red-800'
@@ -539,36 +544,36 @@ export default function QuizPage() {
               </div>
               
               {selectedAnswer !== currentQ.correctAnswer && (
-                <p className="mt-3 text-sm text-gray-600">
+                <p className="mt-2 text-xs text-gray-600">
                   The correct answer is: <span className="font-semibold text-blue-600">{currentQ.correctAnswer}</span>
                 </p>
               )}
               
-              <button
+                <button
                 onClick={handleNextQuestion}
-                className="mt-4 px-6 py-2.5 bg-blue-500 text-white text-sm font-medium rounded-xl hover:bg-blue-600 transition-colors flex items-center space-x-2 mx-auto"
-              >
+                className="mt-3 px-5 py-2 bg-blue-500 text-white text-sm font-medium rounded-lg hover:bg-blue-600 transition-colors flex items-center space-x-2 mx-auto"
+                >
                 <span>{currentQuestion < questions.length - 1 ? 'Next Question' : 'Finish Quiz'}</span>
                 <ArrowLeft className="h-4 w-4 rotate-180" />
-              </button>
+                </button>
             </div>
           )}
         </div>
       </div>
 
       {/* Quick Stats */}
-      <div className="px-4 py-4">
-        <div className="grid grid-cols-3 gap-3">
-          <div className="bg-white rounded-xl p-3 text-center">
-            <div className="text-lg font-semibold text-green-600">{score}</div>
+      <div className="px-3 py-3">
+        <div className="grid grid-cols-3 gap-2">
+          <div className="bg-white rounded-lg p-2.5 text-center">
+            <div className="text-base font-semibold text-green-600">{score}</div>
             <div className="text-xs text-gray-500">Correct</div>
           </div>
-          <div className="bg-white rounded-xl p-3 text-center">
-            <div className="text-lg font-semibold text-red-600">{Math.max(0, currentQuestion - score)}</div>
+          <div className="bg-white rounded-lg p-2.5 text-center">
+            <div className="text-base font-semibold text-red-600">{Math.max(0, currentQuestion - score)}</div>
             <div className="text-xs text-gray-500">Incorrect</div>
           </div>
-          <div className="bg-white rounded-xl p-3 text-center">
-            <div className="text-lg font-semibold text-blue-600">{currentQuestion > 0 ? Math.round((score / currentQuestion) * 100) : 0}%</div>
+          <div className="bg-white rounded-lg p-2.5 text-center">
+            <div className="text-base font-semibold text-blue-600">{currentQuestion > 0 ? Math.round((score / currentQuestion) * 100) : 0}%</div>
             <div className="text-xs text-gray-500">Accuracy</div>
           </div>
         </div>
