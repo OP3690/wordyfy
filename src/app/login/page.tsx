@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Zap, Eye, EyeOff, Sparkles, ArrowLeft, LogIn } from 'lucide-react';
 import Link from 'next/link';
+import { setUserSession } from '@/lib/auth';
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({
@@ -12,6 +13,7 @@ export default function LoginPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,9 +32,8 @@ export default function LoginPage() {
       if (result.user) {
         // Simple password check (in production, use proper hashing)
         if (result.user.password === formData.password) {
-          // Store user data in localStorage for session management
-          localStorage.setItem('user', JSON.stringify(result.user));
-          localStorage.setItem('userId', result.user._id);
+          // Store user data with persistent login
+          setUserSession(result.user, rememberMe);
           
           // Redirect to dashboard after successful login
           window.location.href = '/dashboard';
@@ -128,6 +129,22 @@ export default function LoginPage() {
               </button>
             </div>
             {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
+          </div>
+
+          {/* Remember Me Checkbox */}
+          <div className="flex items-center justify-between">
+            <label className="flex items-center space-x-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+              />
+              <span className="text-sm text-gray-700">Remember me</span>
+            </label>
+            <Link href="#" className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+              Forgot password?
+            </Link>
           </div>
 
           {errors.submit && (

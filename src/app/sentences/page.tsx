@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { Sentence, CreateSentenceRequest } from '@/types/sentence';
+import { getUserSession } from '@/lib/auth';
 
 export default function SentencesPage() {
   const [sentences, setSentences] = useState<Sentence[]>([]);
@@ -34,6 +35,10 @@ export default function SentencesPage() {
   const [editedType, setEditedType] = useState<'quote' | 'sentence' | 'text' | 'note'>('text');
   const [editedAuthor, setEditedAuthor] = useState('');
   const [editedSource, setEditedSource] = useState('');
+  
+  // Delete confirmation state
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [sentenceToDelete, setSentenceToDelete] = useState<Sentence | null>(null);
 
   const [newSentence, setNewSentence] = useState<CreateSentenceRequest>({
     text: '',
@@ -44,7 +49,7 @@ export default function SentencesPage() {
   });
 
   useEffect(() => {
-    const storedUserId = localStorage.getItem('userId');
+    const { userId: storedUserId } = getUserSession();
     if (storedUserId) {
       setUserId(storedUserId);
       loadSentences(storedUserId);
@@ -188,10 +193,18 @@ export default function SentencesPage() {
   };
 
   const handleDeleteSentence = async (sentenceId: string) => {
-    if (!confirm('Are you sure you want to delete this sentence?')) return;
+    const sentence = sentences.find(s => s._id === sentenceId);
+    if (sentence) {
+      setSentenceToDelete(sentence);
+      setShowDeleteConfirm(true);
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (!sentenceToDelete) return;
 
     try {
-      const response = await fetch(`/api/sentences?id=${sentenceId}&userId=${userId}`, {
+      const response = await fetch(`/api/sentences?id=${sentenceToDelete._id}&userId=${userId}`, {
         method: 'DELETE',
       });
 
@@ -202,7 +215,7 @@ export default function SentencesPage() {
         
         // Remove the sentence from local state immediately
         setSentences(prevSentences => 
-          prevSentences.filter(sentence => sentence._id !== sentenceId)
+          prevSentences.filter(sentence => sentence._id !== sentenceToDelete._id)
         );
         
         // Also reload from server to ensure consistency
@@ -218,7 +231,15 @@ export default function SentencesPage() {
     } catch (error) {
       console.error('Error deleting sentence:', error);
       setError('Failed to delete sentence');
+    } finally {
+      setShowDeleteConfirm(false);
+      setSentenceToDelete(null);
     }
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteConfirm(false);
+    setSentenceToDelete(null);
   };
 
   const handleEditSentence = (sentence: Sentence) => {
@@ -425,31 +446,33 @@ export default function SentencesPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b">
+      <div className="bg-gradient-to-r from-purple-50 to-pink-50 shadow-sm border-b border-purple-100">
         <div className="max-w-4xl mx-auto px-3 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-3">
               <Link
                 href="/dashboard"
-                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-white/50 rounded-lg transition-colors"
               >
                 <ArrowLeft className="h-5 w-5" />
               </Link>
-              <div className="h-6 w-px bg-gray-300"></div>
+              <div className="h-6 w-px bg-purple-200"></div>
               <div>
                 <h1 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
-                  <MessageSquare className="h-5 w-5 text-purple-600" />
+                  <div className="p-1.5 bg-purple-100 rounded-lg">
+                    <MessageSquare className="h-4 w-4 text-purple-600" />
+                  </div>
                   <span>My Sentences</span>
                 </h1>
-                <p className="text-sm text-gray-600 mt-1">Store quotes, sentences, and text snippets</p>
+                <p className="text-xs text-gray-600 mt-0.5">Store quotes, sentences, and text snippets</p>
               </div>
             </div>
             <button
               onClick={() => setShowAddForm(true)}
-              className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-3 py-1.5 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all font-medium flex items-center space-x-1.5 text-sm"
+              className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-3 py-2 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all font-medium flex items-center space-x-1.5 text-sm shadow-md hover:shadow-lg"
             >
               <Plus className="h-4 w-4" />
-              <span>Add Sentence</span>
+              <span className="hidden sm:inline">Add Sentence</span>
             </button>
           </div>
         </div>
@@ -576,7 +599,16 @@ export default function SentencesPage() {
             </form>
           </div>
         ) : (
-          <div className="bg-white rounded-xl p-4 mb-6 shadow-sm">
+          <div className="bg-white rounded-xl p-4 mb-4 shadow-sm border border-gray-100">
+            <div className="mb-3">
+              <h3 className="text-sm font-semibold text-gray-800 flex items-center space-x-2">
+                <div className="p-1 bg-purple-100 rounded-md">
+                  <Plus className="h-3 w-3 text-purple-600" />
+                </div>
+                <span>Quick Add</span>
+              </h3>
+              <p className="text-xs text-gray-500 mt-1">Type anything and save it instantly</p>
+            </div>
             <form onSubmit={handleQuickAdd} className="flex flex-col gap-3">
               <div className="flex-1">
                 <input
@@ -584,14 +616,14 @@ export default function SentencesPage() {
                   placeholder="Type anything here for quick add..."
                   value={quickText}
                   onChange={(e) => setQuickText(e.target.value)}
-                  className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900 placeholder-gray-500 text-sm"
+                  className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900 placeholder-gray-500 text-sm bg-gray-50 focus:bg-white transition-colors"
                   disabled={quickAdding}
                 />
               </div>
               <button
                 type="submit"
                 disabled={quickAdding || !quickText.trim()}
-                className="px-4 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all font-medium disabled:opacity-50 flex items-center justify-center space-x-1.5 text-sm"
+                className="px-4 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all font-medium disabled:opacity-50 flex items-center justify-center space-x-1.5 text-sm shadow-md hover:shadow-lg disabled:shadow-none"
               >
                 {quickAdding ? (
                   <>
@@ -610,13 +642,16 @@ export default function SentencesPage() {
         )}
 
         {/* Filter Section */}
-        <div className="bg-white rounded-lg p-3 mb-4 shadow-sm">
+        <div className="bg-white rounded-lg p-3 mb-4 shadow-sm border border-gray-100">
           <div className="flex items-center justify-between">
-            <h3 className="text-xs font-medium text-gray-700">Filter by Type</h3>
+            <div className="flex items-center space-x-2">
+              <Filter className="h-4 w-4 text-gray-500" />
+              <h3 className="text-xs font-medium text-gray-700">Filter by Type</h3>
+            </div>
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
-              className="px-2.5 py-1.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm"
+              className="px-2.5 py-1.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm bg-gray-50 focus:bg-white transition-colors"
             >
               <option value="all">All Types</option>
               <option value="quote">Quotes</option>
@@ -655,7 +690,7 @@ export default function SentencesPage() {
             </div>
           ) : (
             filteredSentences.map((sentence) => (
-              <div key={sentence._id} className="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
+              <div key={sentence._id} className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-200 border border-gray-100 hover:border-purple-200">
                 {editingSentenceId === sentence._id ? (
                   // Edit Mode
                   <div className="space-y-3">
@@ -738,46 +773,46 @@ export default function SentencesPage() {
                 ) : (
                   // View Mode
                   <div>
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex items-center space-x-1.5">
-                        <div className={`px-1.5 py-0.5 rounded-md border text-xs font-medium flex items-center space-x-1 ${getTypeColor(sentence.type)}`}>
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center space-x-2">
+                        <div className={`px-2 py-1 rounded-lg border text-xs font-medium flex items-center space-x-1.5 ${getTypeColor(sentence.type)}`}>
                           {getTypeIcon(sentence.type)}
                           <span className="capitalize">{sentence.type}</span>
                         </div>
                         {sentence.author && (
-                          <div className="flex items-center space-x-1 text-xs text-gray-500">
+                          <div className="flex items-center space-x-1 text-xs text-gray-500 bg-gray-50 px-2 py-1 rounded-md">
                             <User className="h-3 w-3" />
                             <span>{sentence.author}</span>
                           </div>
                         )}
                       </div>
-                      <div className="flex items-center space-x-0.5">
+                      <div className="flex items-center space-x-1">
                         <button
                           onClick={() => handleEditSentence(sentence)}
-                          className="p-1 text-gray-400 hover:text-blue-500 transition-colors"
+                          className="p-2 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-all"
                         >
                           <Edit3 className="h-4 w-4" />
                         </button>
                         <button
                           onClick={() => handleDeleteSentence(sentence._id!)}
-                          className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+                          className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>
                       </div>
                     </div>
 
-                    <p className="text-gray-900 mb-2 leading-relaxed text-sm">{sentence.text}</p>
+                    <p className="text-gray-900 mb-3 leading-relaxed text-sm bg-gray-50 p-3 rounded-lg">{sentence.text}</p>
 
                     <div className="flex items-center justify-between text-xs text-gray-500">
                       <div className="flex items-center space-x-3">
                         {sentence.source && (
-                          <div className="flex items-center space-x-1">
+                          <div className="flex items-center space-x-1 bg-gray-50 px-2 py-1 rounded-md">
                             <Tag className="h-3 w-3" />
                             <span>{sentence.source}</span>
                           </div>
                         )}
-                        <div className="flex items-center space-x-1">
+                        <div className="flex items-center space-x-1 bg-gray-50 px-2 py-1 rounded-md">
                           <Calendar className="h-3 w-3" />
                           <span>{new Date(sentence.createdAt).toLocaleDateString()}</span>
                         </div>
@@ -793,6 +828,40 @@ export default function SentencesPage() {
         {/* Pagination */}
         {renderPagination()}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && sentenceToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl p-6 w-full max-w-sm shadow-xl">
+            <div className="text-center">
+              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Trash2 className="h-6 w-6 text-red-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Delete Sentence</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Are you sure you want to delete this sentence? This action cannot be undone.
+              </p>
+              <div className="bg-gray-50 p-3 rounded-lg mb-4">
+                <p className="text-sm text-gray-800 italic">"{sentenceToDelete.text}"</p>
+              </div>
+              <div className="flex space-x-3">
+                <button
+                  onClick={cancelDelete}
+                  className="flex-1 px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

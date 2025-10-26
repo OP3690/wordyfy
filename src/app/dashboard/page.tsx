@@ -10,6 +10,7 @@ import Link from 'next/link';
 import { saveWord, getStoredWords } from '@/lib/storage';
 import { Word } from '@/types/word';
 import InstallPrompt from '@/components/InstallPrompt';
+import { getUserSession, clearUserSession } from '@/lib/auth';
 
 export default function Dashboard() {
   const [word, setWord] = useState('');
@@ -263,23 +264,16 @@ export default function Dashboard() {
   useEffect(() => {
     setMounted(true);
     
-    const storedUser = localStorage.getItem('user');
-    const storedUserId = localStorage.getItem('userId');
+    // Use persistent login system
+    const { user: userData, userId: storedUserId, rememberMe } = getUserSession();
     
-    if (storedUser && storedUserId) {
-      try {
-        const userData = JSON.parse(storedUser);
+    if (userData && storedUserId) {
         setUser(userData);
         setUserId(storedUserId);
         loadUserWords(storedUserId);
-        loadQuizStats(storedUserId);
-      } catch (error) {
-        console.error('Error parsing user data:', error);
-        localStorage.removeItem('user');
-        localStorage.removeItem('userId');
-        window.location.href = '/login';
-      }
+      loadQuizStats(storedUserId);
     } else {
+      // No valid session found, redirect to login
       window.location.href = '/login';
     }
     
@@ -290,7 +284,7 @@ export default function Dashboard() {
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (!document.hidden) {
-        const storedUserId = localStorage.getItem('userId');
+        const { userId: storedUserId } = getUserSession();
         if (storedUserId) {
           console.log('🔄 Page became visible, refreshing quiz stats...');
           loadQuizStats(storedUserId);
@@ -299,7 +293,7 @@ export default function Dashboard() {
     };
 
     const handleFocus = () => {
-      const storedUserId = localStorage.getItem('userId');
+      const { userId: storedUserId } = getUserSession();
       if (storedUserId) {
         console.log('🔄 Window focused, refreshing quiz stats...');
         loadQuizStats(storedUserId);
@@ -307,7 +301,7 @@ export default function Dashboard() {
     };
 
     const handleQuizStatsUpdate = () => {
-      const storedUserId = localStorage.getItem('userId');
+      const { userId: storedUserId } = getUserSession();
       if (storedUserId) {
         console.log('🔄 Quiz stats updated event received, refreshing...');
         loadQuizStats(storedUserId);
@@ -461,8 +455,7 @@ export default function Dashboard() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('user');
-    localStorage.removeItem('userId');
+    clearUserSession();
     window.location.href = '/login';
   };
 
@@ -627,7 +620,7 @@ export default function Dashboard() {
                 )}
                     <span className="hidden sm:inline">Add</span>
               </button>
-            </div>
+                          </div>
             
                 
                 {/* Suggestions Dropdown - Enhanced */}
@@ -635,9 +628,9 @@ export default function Dashboard() {
                   <div className="suggestions-container absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-200 z-50 max-h-40 overflow-y-auto animate-slideInDown">
                     <div className="p-2">
                       <div className="text-xs text-gray-500 px-2 py-1 font-medium">Did you mean:</div>
-                      {suggestions.map((suggestion, index) => (
-                      <button
-                          key={index}
+                        {suggestions.map((suggestion, index) => (
+                          <button
+                            key={index}
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
@@ -650,12 +643,12 @@ export default function Dashboard() {
                             <svg className="h-4 w-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                         </svg>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                      </button>
-                      ))}
-                          </div>
-                                  </div>
-                                )}
+                  )}
                               </div>
               
               {/* Message Display - Minimal */}
@@ -674,15 +667,15 @@ export default function Dashboard() {
                       <AlertCircle className="h-4 w-4 text-red-600 mt-0.5" />
                     )}
                     <p className="text-sm">{message}</p>
+                    </div>
+                  </div>
+                )}
+            </form>
               </div>
             </div>
-          )}
-            </form>
-        </div>
-              </div>
-              
+            
         {/* Word Details - Minimal */}
-        {currentWordData && (
+            {currentWordData && (
           <div className="px-4 py-2">
             <div className="bg-white rounded-xl p-4">
               <div className="flex items-center space-x-3 mb-3">
@@ -690,7 +683,7 @@ export default function Dashboard() {
                   <span className="text-sm font-semibold text-blue-700">
                     {currentWordData.englishWord?.charAt(0).toUpperCase() || currentWordData.word?.charAt(0).toUpperCase()}
                         </span>
-                      </div>
+                </div>
                 <div className="flex-1">
                   <h3 className="text-base font-semibold text-gray-900">
                     {currentWordData.englishWord?.charAt(0).toUpperCase() + currentWordData.englishWord?.slice(1) || 
@@ -702,16 +695,16 @@ export default function Dashboard() {
                     </div>
                 <div className="flex items-center space-x-1">
                       <button
-                    onClick={() => playPronunciation(currentWordData.englishWord || currentWordData.word, false)}
+                        onClick={() => playPronunciation(currentWordData.englishWord || currentWordData.word, false)}
                     className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                  >
+                      >
                     <Volume2 className="h-4 w-4" />
                       </button>
                     </div>
                   </div>
 
               {/* Meanings - Enhanced */}
-              {currentWordData.meanings && currentWordData.meanings.length > 0 && (
+                    {currentWordData.meanings && currentWordData.meanings.length > 0 && (
                 <div className="space-y-3">
                   {currentWordData.meanings.map((meaning: any, meaningIndex: number) => (
                     <div key={meaningIndex} className="space-y-3">
@@ -719,8 +712,8 @@ export default function Dashboard() {
                         <div className="flex items-center space-x-2">
                         <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-lg">
                                 {meaning.partOfSpeech}
-                              </span>
-                            </div>
+                                      </span>
+                                    </div>
                       
                       {/* All Definitions */}
                       {meaning.definitions.map((def: any, defIndex: number) => (
@@ -738,15 +731,15 @@ export default function Dashboard() {
                                   <p className="text-sm text-gray-700 italic mb-1">
                                     <span className="font-semibold text-gray-600">Example:</span> {def.example}
                                   </p>
-                                  {def.hindiExample && (
+                                {def.hindiExample && (
                                     <p className="text-xs text-gray-600 italic">
                                       <span className="font-semibold text-gray-500">Hindi:</span> {def.hindiExample}
                                     </p>
-                                  )}
-                                </div>
+                                )}
                               </div>
-                                    </div>
-                                  )}
+                        </div>
+                      </div>
+                    )}
                                 </div>
                               ))}
                       
@@ -763,18 +756,18 @@ export default function Dashboard() {
                                 <div key={synIndex} className="flex flex-col items-center">
                                   <span className="px-3 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full border border-green-200 hover:bg-green-200 transition-colors">
                                     {typeof synonym === 'string' ? synonym.charAt(0).toUpperCase() + synonym.slice(1) : synonym.english?.charAt(0).toUpperCase() + synonym.english?.slice(1)}
-                                  </span>
+                          </span>
                                   {(typeof synonym === 'object' && synonym.hindi) && (
                                     <span className="text-xs text-gray-600 mt-1 text-center">
-                                      {synonym.hindi}
-                                    </span>
-                                  )}
-                          </div>
-                        ))}
-                      </div>
+                              {synonym.hindi}
+                            </span>
+                          )}
+                        </div>
+                      ))}
                     </div>
-                  )}
-
+                  </div>
+                )}
+                        
                         {meaning.antonyms && meaning.antonyms.length > 0 && (
                           <div className="bg-gradient-to-r from-red-50 to-rose-50 rounded-lg p-3 border border-red-200">
                             <div className="flex items-center space-x-2 mb-2">
@@ -786,25 +779,25 @@ export default function Dashboard() {
                                 <div key={antIndex} className="flex flex-col items-center">
                                   <span className="px-3 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full border border-red-200 hover:bg-red-200 transition-colors">
                                     {typeof antonym === 'string' ? antonym.charAt(0).toUpperCase() + antonym.slice(1) : antonym.english?.charAt(0).toUpperCase() + antonym.english?.slice(1)}
-                                  </span>
+                          </span>
                                   {(typeof antonym === 'object' && antonym.hindi) && (
                                     <span className="text-xs text-gray-600 mt-1 text-center">
-                                      {antonym.hindi}
-                                    </span>
-                                  )}
-                                </div>
-                              ))}
-                      </div>
+                              {antonym.hindi}
+                            </span>
+                          )}
+                        </div>
+                      ))}
                     </div>
-                  )}
-                </div>
-              </div>
-                  ))}
                   </div>
+                )}
+                      </div>
+                  </div>
+                  ))}
+              </div>
               )}
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
         {/* Quick Actions - App-like */}
         <div className="px-4 py-2">
@@ -815,7 +808,7 @@ export default function Dashboard() {
                 >
               <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-2">
                 <BookOpen className="h-5 w-5 text-blue-600" />
-            </div>
+        </div>
               <div className="text-sm font-medium text-gray-900">My Words</div>
               <div className="text-xs text-gray-500">{storedWords.length}</div>
             </Link>
@@ -837,11 +830,11 @@ export default function Dashboard() {
             >
               <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center mx-auto mb-2">
                 <MessageSquare className="h-5 w-5 text-purple-600" />
-              </div>
+                  </div>
               <div className="text-sm font-medium text-gray-900">Sentences</div>
               <div className="text-xs text-gray-500">Quotes & Text</div>
                 </Link>
-              </div>
+                  </div>
                 </div>
       </main>
 
@@ -849,14 +842,14 @@ export default function Dashboard() {
       <InstallPrompt />
 
       {/* Floating Action Button for Quick Add */}
-      <button
+                      <button
         onClick={() => setShowQuickAddPopup(true)}
         className="fixed bottom-6 right-6 z-50 bg-gradient-to-r from-purple-600 to-pink-600 text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 group"
       >
         <Plus className="h-6 w-6" />
         <div className="absolute right-full mr-3 top-1/2 transform -translate-y-1/2 bg-gray-900 text-white text-sm px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
           Quick Add
-        </div>
+                    </div>
       </button>
 
       {/* Quick Add Popup Modal */}
@@ -865,18 +858,18 @@ export default function Dashboard() {
           <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-xl">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900">Quick Add Text</h3>
-              <button
-                onClick={() => {
+                      <button
+                        onClick={() => {
                   setShowQuickAddPopup(false);
                   setQuickAddText('');
-                }}
+                        }}
                 className="text-gray-400 hover:text-gray-600 transition-colors"
-              >
+                      >
                 <X className="h-5 w-5" />
-              </button>
-            </div>
-            
-            <div className="space-y-4">
+                      </button>
+                    </div>
+                    
+                      <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Text
@@ -889,18 +882,18 @@ export default function Dashboard() {
                   rows={4}
                   autoFocus
                 />
-              </div>
-              
+                        </div>
+                        
               <div className="flex justify-end space-x-3">
-                <button
-                  onClick={() => {
+                          <button
+                            onClick={() => {
                     setShowQuickAddPopup(false);
                     setQuickAddText('');
                   }}
                   className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
                 >
                   Cancel
-                </button>
+                          </button>
                 <button
                   onClick={handleQuickAdd}
                   disabled={quickAddLoading || !quickAddText.trim()}
@@ -918,11 +911,11 @@ export default function Dashboard() {
                     </>
                   )}
                 </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
     </div>
   );
 }
