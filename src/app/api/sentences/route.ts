@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/mongodb';
 import { Sentence, CreateSentenceRequest } from '@/types/sentence';
+import { ObjectId } from 'mongodb';
 
 export async function GET(request: NextRequest) {
   try {
