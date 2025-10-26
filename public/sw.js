@@ -1,4 +1,4 @@
-const CACHE_NAME = 'wordyfy-v2';
+const CACHE_NAME = 'wordyfy-v3';
 const urlsToCache = [
   '/',
   '/dashboard',
@@ -9,6 +9,9 @@ const urlsToCache = [
   '/login',
   '/signup',
   '/manifest.json',
+  '/favicon.ico',
+  '/favicon.png',
+  '/puzzle_icon.png',
   '/icon-192x192.png',
   '/icon-512x512.png'
 ];
