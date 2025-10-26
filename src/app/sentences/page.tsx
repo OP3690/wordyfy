@@ -5,7 +5,7 @@ import {
   Plus, MessageSquare, Quote, FileText, StickyNote, 
   Trash2, Calendar, User, Tag, Search, Filter,
   Loader2, AlertCircle, CheckCircle, ArrowLeft,
-  Edit3, Save, X, ChevronLeft, ChevronRight, RefreshCw
+  Edit3, Save, X, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import Link from 'next/link';
 import { Sentence, CreateSentenceRequest } from '@/types/sentence';
@@ -340,6 +340,11 @@ export default function SentencesPage() {
         
         handleCancelEdit();
         
+        // Also reload from server to ensure consistency
+        setTimeout(() => {
+          loadSentences(userId, currentPage);
+        }, 100);
+        
         // Clear success message after 3 seconds
         setTimeout(() => setSuccess(''), 3000);
       } else {
@@ -383,10 +388,30 @@ export default function SentencesPage() {
     loadSentences(userId, page);
   };
 
-  const handleRefresh = () => {
-    console.log('🔄 Refreshing sentences...');
-    loadSentences(userId, currentPage);
-  };
+  // Auto-refresh when page becomes visible (user switches back to tab)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && userId) {
+        console.log('🔄 Page became visible, auto-refreshing sentences...');
+        loadSentences(userId, currentPage);
+      }
+    };
+
+    const handleFocus = () => {
+      if (userId) {
+        console.log('🔄 Window focused, auto-refreshing sentences...');
+        loadSentences(userId, currentPage);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [userId, currentPage]);
 
   const renderPagination = () => {
     if (totalPages <= 1) return null;
@@ -511,22 +536,13 @@ export default function SentencesPage() {
                 <p className="text-sm text-gray-600 mt-1 font-medium">Store quotes, sentences, and text snippets</p>
               </div>
             </div>
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={handleRefresh}
-                className="p-2.5 text-gray-600 hover:text-gray-900 hover:bg-white/60 rounded-xl transition-all duration-200 group"
-                title="Refresh sentences"
-              >
-                <RefreshCw className="h-5 w-5 group-hover:rotate-180 transition-transform duration-500" />
-              </button>
-              <button
-                onClick={() => setShowAddForm(true)}
-                className="bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600 text-white px-4 py-2.5 rounded-xl hover:from-purple-700 hover:via-pink-700 hover:to-rose-700 transition-all duration-300 font-semibold flex items-center space-x-2 text-sm shadow-lg hover:shadow-xl hover:scale-105 transform"
-              >
-                <Plus className="h-4 w-4" />
-                <span className="hidden sm:inline">Add Sentence</span>
-              </button>
-            </div>
+            <button
+              onClick={() => setShowAddForm(true)}
+              className="bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600 text-white px-4 py-2.5 rounded-xl hover:from-purple-700 hover:via-pink-700 hover:to-rose-700 transition-all duration-300 font-semibold flex items-center space-x-2 text-sm shadow-lg hover:shadow-xl hover:scale-105 transform"
+            >
+              <Plus className="h-4 w-4" />
+              <span className="hidden sm:inline">Add Sentence</span>
+            </button>
           </div>
         </div>
       </div>
