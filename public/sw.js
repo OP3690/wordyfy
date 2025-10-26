@@ -1,4 +1,4 @@
-const CACHE_NAME = 'wordyfy-v4';
+const CACHE_NAME = 'wordyfy-v5';
 const urlsToCache = [
   '/',
   '/dashboard',
@@ -20,15 +20,17 @@ const urlsToCache = [
 self.addEventListener('install', (event) => {
   console.log('Service Worker installing...');
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => {
-        console.log('Opened cache');
-        return cache.addAll(urlsToCache);
-      })
-      .then(() => {
-        console.log('All resources cached');
-        return self.skipWaiting();
-      })
+    caches.delete(CACHE_NAME).then(() => {
+      return caches.open(CACHE_NAME);
+    }).then((cache) => {
+      console.log('Opened fresh cache');
+      return cache.addAll(urlsToCache);
+    }).then(() => {
+      console.log('All resources cached');
+      return self.skipWaiting();
+    }).catch((error) => {
+      console.error('Cache installation failed:', error);
+    })
   );
 });
 
@@ -48,6 +50,8 @@ self.addEventListener('activate', (event) => {
     }).then(() => {
       console.log('Service Worker activated');
       return self.clients.claim();
+    }).catch((error) => {
+      console.error('Service Worker activation failed:', error);
     })
   );
 });
@@ -62,7 +66,10 @@ self.addEventListener('fetch', (event) => {
           return response;
         }
         return fetch(event.request);
-      }
-    )
+      })
+      .catch((error) => {
+        console.error('Fetch failed:', error);
+        return fetch(event.request);
+      })
   );
 });

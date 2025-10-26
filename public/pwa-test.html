@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PWA Test - WordyFy</title>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" href="/puzzle_icon.png">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 10px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #2563eb;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .success { background: #d1fae5; color: #065f46; }
+        .error { background: #fee2e2; color: #991b1b; }
+        .info { background: #dbeafe; color: #1e40af; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>🔧 PWA Installation Test</h1>
+        <p>This page helps debug PWA installation issues.</p>
+    </div>
+
+    <div class="card">
+        <h2>📱 Installation Methods</h2>
+        <button onclick="testInstall()">Test Install Prompt</button>
+        <button onclick="manualInstall()">Manual Install Guide</button>
+        <button onclick="clearCache()">Clear Cache</button>
+    </div>
+
+    <div class="card">
+        <h2>🔍 Debug Information</h2>
+        <div id="debug-info"></div>
+    </div>
+
+    <div class="card">
+        <h2>📊 Status</h2>
+        <div id="status"></div>
+    </div>
+
+    <script>
+        let deferredPrompt;
+        
+        // Debug info
+        function updateDebugInfo() {
+            const debugDiv = document.getElementById('debug-info');
+            debugDiv.innerHTML = `
+                <div class="status info">
+                    <strong>PWA Requirements:</strong><br>
+                    ✅ HTTPS: ${location.protocol === 'https:' || location.hostname === 'localhost'}<br>
+                    ✅ Manifest: ${document.querySelector('link[rel="manifest"]') ? 'Found' : 'Missing'}<br>
+                    ✅ Service Worker: ${'serviceWorker' in navigator ? 'Supported' : 'Not Supported'}<br>
+                    ✅ User Agent: ${navigator.userAgent.includes('Mobile') ? 'Mobile' : 'Desktop'}<br>
+                    ✅ Before Install Prompt: ${deferredPrompt ? 'Available' : 'Not Available'}
+                </div>
+            `;
+        }
+
+        // Test install prompt
+        function testInstall() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    updateStatus(`Install prompt result: ${choiceResult.outcome}`, choiceResult.outcome === 'accepted' ? 'success' : 'error');
+                    deferredPrompt = null;
+                });
+            } else {
+                updateStatus('No install prompt available. Try manual installation.', 'error');
+            }
+        }
+
+        // Manual install guide
+        function manualInstall() {
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            const isAndroid = /Android/.test(navigator.userAgent);
+            
+            let instructions = '';
+            if (isIOS) {
+                instructions = `
+                    <div class="status info">
+                        <strong>iOS Safari Installation:</strong><br>
+                        1. Tap the Share button (square with arrow)<br>
+                        2. Select "Add to Home Screen"<br>
+                        3. Tap "Add"
+                    </div>
+                `;
+            } else if (isAndroid) {
+                instructions = `
+                    <div class="status info">
+                        <strong>Android Chrome Installation:</strong><br>
+                        1. Tap the three dots menu<br>
+                        2. Select "Add to Home Screen"<br>
+                        3. Tap "Add"
+                    </div>
+                `;
+            } else {
+                instructions = `
+                    <div class="status info">
+                        <strong>Desktop Installation:</strong><br>
+                        1. Look for install button in address bar<br>
+                        2. Or go to Settings → Install WordyFy<br>
+                        3. Or try Chrome menu → Install WordyFy
+                    </div>
+                `;
+            }
+            
+            updateStatus(instructions, 'info');
+        }
+
+        // Clear cache
+        function clearCache() {
+            if ('caches' in window) {
+                caches.keys().then((cacheNames) => {
+                    return Promise.all(
+                        cacheNames.map((cacheName) => {
+                            return caches.delete(cacheName);
+                        })
+                    );
+                }).then(() => {
+                    updateStatus('Cache cleared successfully!', 'success');
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1000);
+                });
+            } else {
+                updateStatus('Cache API not supported', 'error');
+            }
+        }
+
+        // Update status
+        function updateStatus(message, type) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+
+        // Service worker registration
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js')
+                .then((registration) => {
+                    updateStatus('Service Worker registered successfully!', 'success');
+                    console.log('SW registered:', registration);
+                })
+                .catch((error) => {
+                    updateStatus(`Service Worker registration failed: ${error.message}`, 'error');
+                    console.error('SW registration failed:', error);
+                });
+        }
+
+        // Before install prompt
+        window.addEventListener('beforeinstallprompt', (e) => {
+            console.log('beforeinstallprompt event fired');
+            e.preventDefault();
+            deferredPrompt = e;
+            updateStatus('Install prompt is ready!', 'success');
+            updateDebugInfo();
+        });
+
+        // App installed
+        window.addEventListener('appinstalled', () => {
+            updateStatus('App installed successfully! 🎉', 'success');
+            console.log('PWA was installed');
+        });
+
+        // Initial debug info
+        updateDebugInfo();
+        
+        // Check if already installed
+        if (window.matchMedia('(display-mode: standalone)').matches) {
+            updateStatus('App is already installed and running in standalone mode!', 'success');
+        }
+    </script>
+</body>
+</html>
