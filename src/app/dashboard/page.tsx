@@ -508,34 +508,37 @@ export default function Dashboard() {
       {/* Header */}
       <header className="relative bg-white/80 backdrop-blur-md border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <Link href="/" className="flex items-center space-x-3">
-              <div className="p-3 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl shadow-lg">
-                <Zap className="h-8 w-8 text-white" />
+          <div className="flex justify-between items-center py-4 sm:py-6">
+            <Link href="/" className="flex items-center space-x-2 sm:space-x-3">
+              <div className="p-2 sm:p-3 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl sm:rounded-2xl shadow-lg">
+                <Zap className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
               </div>
-              <h1 className="text-3xl font-bold text-gray-900">Wordyfy</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Wordyfy</h1>
             </Link>
-            <nav className="flex space-x-4">
+            <nav className="flex space-x-1 sm:space-x-2">
               <Link
                 href="/vault"
-                className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors font-medium"
+                className="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-2 text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors font-medium text-sm sm:text-base"
               >
-                <History className="h-5 w-5" />
-                <span>My Vault</span>
+                <History className="h-4 w-4 sm:h-5 sm:w-5" />
+                <span className="hidden sm:inline">My Vault</span>
+                <span className="sm:hidden">Vault</span>
               </Link>
               <Link
                 href="/quiz"
-                className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors font-medium"
+                className="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-2 text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors font-medium text-sm sm:text-base"
               >
-                <Play className="h-5 w-5" />
-                <span>Play</span>
+                <Play className="h-4 w-4 sm:h-5 sm:w-5" />
+                <span className="hidden sm:inline">Play</span>
+                <span className="sm:hidden">Quiz</span>
               </Link>
               <button
                 onClick={handleLogout}
-                className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors font-medium"
+                className="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-2 text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors font-medium text-sm sm:text-base"
               >
-                <LogOut className="h-5 w-5" />
-                <span>Logout</span>
+                <LogOut className="h-4 w-4 sm:h-5 sm:w-5" />
+                <span className="hidden sm:inline">Logout</span>
+                <span className="sm:hidden">Exit</span>
               </button>
             </nav>
           </div>
@@ -546,30 +549,30 @@ export default function Dashboard() {
       <main className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           {/* Hero Section */}
-          <div className="text-center mb-12">
-            <h1 className="text-6xl font-bold text-gray-900 mb-6 leading-tight">
+          <div className="text-center mb-8 sm:mb-12">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-4 sm:mb-6 leading-tight px-4">
               Welcome to Your <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
                 Learning Dashboard
               </span>
             </h1>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-base sm:text-lg md:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed px-4">
               Build your vocabulary, track your progress, and master new words with our intelligent learning platform
             </p>
           </div>
 
           {/* Add Word Section */}
-          <div className="bg-white/90 backdrop-blur-xl rounded-3xl p-8 mb-36 border border-white/30 shadow-2xl hover:shadow-3xl transition-all duration-500 relative z-10">
-            <div className="text-center mb-6">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-2xl mb-4 shadow-xl transform hover:scale-105 transition-transform duration-300">
-                <Plus className="h-8 w-8 text-white" />
+          <div className="bg-white/90 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 mb-24 sm:mb-36 border border-white/30 shadow-2xl hover:shadow-3xl transition-all duration-500 relative z-10">
+            <div className="text-center mb-4 sm:mb-6">
+              <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl sm:rounded-2xl mb-3 sm:mb-4 shadow-xl transform hover:scale-105 transition-transform duration-300">
+                <Plus className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
               </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-3">Add a New Word</h2>
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2 sm:mb-3">Add a New Word</h2>
               <p className="text-gray-600 text-sm max-w-2xl mx-auto">
                 Enter an English word to get comprehensive details and expand your vocabulary
               </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6 pb-28">
+            <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6 pb-20 sm:pb-28">
               <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 max-w-4xl mx-auto">
                 <div className="flex-1 relative z-20">
                   <input
@@ -589,7 +592,7 @@ export default function Dashboard() {
                       }
                     }}
                     placeholder="Enter an English word..."
-                    className={`flex-1 w-full px-6 sm:px-8 py-5 sm:py-6 bg-white/95 border-2 rounded-2xl sm:rounded-3xl focus:ring-4 focus:ring-emerald-500/30 focus:border-emerald-500 text-gray-900 text-lg sm:text-xl font-medium transition-all placeholder-gray-500 shadow-lg hover:shadow-xl backdrop-blur-sm ${
+                    className={`flex-1 w-full px-4 sm:px-6 md:px-8 py-3 sm:py-5 md:py-6 bg-white/95 border-2 rounded-xl sm:rounded-2xl md:rounded-3xl focus:ring-4 focus:ring-emerald-500/30 focus:border-emerald-500 text-gray-900 text-base sm:text-lg md:text-xl font-medium transition-all placeholder-gray-500 shadow-lg hover:shadow-xl backdrop-blur-sm ${
                       !isValidWord && word.length > 2 ? 'border-red-300 focus:border-red-500 focus:ring-red-500/30' : 'border-gray-200'
                     }`}
                     autoComplete="off"
@@ -672,7 +675,7 @@ export default function Dashboard() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full sm:w-auto px-10 sm:px-12 py-5 sm:py-6 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold rounded-2xl sm:rounded-3xl hover:from-emerald-600 hover:to-teal-600 transition-all transform hover:scale-105 shadow-xl flex items-center justify-center space-x-3 sm:space-x-4 text-lg sm:text-xl disabled:opacity-50 sm:min-w-[220px]"
+                  className="w-full sm:w-auto px-6 sm:px-10 md:px-12 py-4 sm:py-5 md:py-6 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold rounded-xl sm:rounded-2xl md:rounded-3xl hover:from-emerald-600 hover:to-teal-600 transition-all transform hover:scale-105 shadow-xl flex items-center justify-center space-x-2 sm:space-x-3 md:space-x-4 text-base sm:text-lg md:text-xl disabled:opacity-50 sm:min-w-[200px] md:min-w-[220px]"
                 >
                 {loading ? (
                   <>
@@ -1077,20 +1080,20 @@ export default function Dashboard() {
           {/* Statistics Section */}
           <div className="mb-16 relative z-10 mt-16">
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">Your Learning Progress</h2>
-              <p className="text-gray-600 text-lg">Track your vocabulary growth and achievements</p>
+              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 sm:mb-4">Your Learning Progress</h2>
+              <p className="text-gray-600 text-base sm:text-lg">Track your vocabulary growth and achievements</p>
             </div>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="bg-white/90 backdrop-blur-xl rounded-2xl p-6 border border-white/30 shadow-xl hover:shadow-2xl transition-all duration-300 group hover:-translate-y-1 transform">
-                <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg group-hover:scale-110 transition-transform">
-                  <CalendarCheck className="h-8 w-8 text-white" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+              <div className="bg-white/90 backdrop-blur-xl rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-white/30 shadow-xl hover:shadow-2xl transition-all duration-300 group hover:-translate-y-1 transform">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl sm:rounded-2xl flex items-center justify-center mx-auto mb-3 sm:mb-4 shadow-lg group-hover:scale-110 transition-transform">
+                  <CalendarCheck className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
                 </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-2">Added Today</h3>
-                <p className="text-3xl font-bold text-purple-600 mb-1">
+                <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-1 sm:mb-2">Added Today</h3>
+                <p className="text-2xl sm:text-3xl font-bold text-purple-600 mb-1">
                   {mounted ? wordsAddedToday : 0}
                 </p>
-                <p className="text-sm text-gray-500">New words today</p>
+                <p className="text-xs sm:text-sm text-gray-500">New words today</p>
               </div>
 
               <div className="bg-white/90 backdrop-blur-xl rounded-2xl p-6 border border-white/30 shadow-xl hover:shadow-2xl transition-all duration-300 group hover:-translate-y-1 transform">
