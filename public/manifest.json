@@ -2,7 +2,7 @@
   "name": "WordyFy - Word Learning App",
   "short_name": "WordyFy",
   "description": "Learn English words with Hindi translations, quizzes, and advanced games",
-  "start_url": "/",
+  "start_url": "/?v=4",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#3b82f6",
@@ -10,6 +10,7 @@
   "scope": "/",
   "lang": "en",
   "categories": ["education", "productivity"],
+  "id": "wordyfy-v4",
   "icons": [
     {
       "src": "/puzzle_icon.png",
