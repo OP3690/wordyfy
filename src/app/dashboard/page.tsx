@@ -514,7 +514,7 @@ export default function Dashboard() {
               <div className="p-2 sm:p-3 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl sm:rounded-2xl shadow-lg">
                 <Zap className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
               </div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Wordyfy</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">WordyFy</h1>
             </Link>
             <nav className="flex space-x-1 sm:space-x-2">
               <Link

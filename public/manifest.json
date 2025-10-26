@@ -1,6 +1,6 @@
 {
-  "name": "Wordyfy - Word Learning App",
-  "short_name": "Wordyfy",
+  "name": "WordyFy - Word Learning App",
+  "short_name": "WordyFy",
   "description": "Learn English words with Hindi translations, quizzes, and advanced games",
   "start_url": "/",
   "display": "standalone",
@@ -12,13 +12,13 @@
   "categories": ["education", "productivity"],
   "icons": [
     {
-      "src": "/icon-192x192.png",
+      "src": "/puzzle_icon.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable any"
     },
     {
-      "src": "/icon-512x512.png",
+      "src": "/puzzle_icon.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable any"
@@ -46,7 +46,7 @@
       "url": "/dashboard",
       "icons": [
         {
-          "src": "/icon-192x192.png",
+          "src": "/puzzle_icon.png",
           "sizes": "192x192"
         }
       ]
@@ -58,7 +58,7 @@
       "url": "/quiz",
       "icons": [
         {
-          "src": "/icon-192x192.png",
+          "src": "/puzzle_icon.png",
           "sizes": "192x192"
         }
       ]
@@ -70,7 +70,7 @@
       "url": "/vault",
       "icons": [
         {
-          "src": "/icon-192x192.png",
+          "src": "/puzzle_icon.png",
           "sizes": "192x192"
         }
       ]

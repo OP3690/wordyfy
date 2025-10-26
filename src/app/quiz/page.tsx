@@ -543,16 +543,16 @@ export default function QuizPage() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-3 sm:py-4">
             <Link href="/dashboard" className="flex items-center space-x-2 sm:space-x-3">
-              <div className="p-2 sm:p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl shadow-lg">
+              <div className="p-2 sm:p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl sm:rounded-2xl shadow-lg">
                 <Zap className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
               </div>
               <h1 className="text-lg sm:text-xl font-bold text-gray-800">Classic Quiz</h1>
             </Link>
             
-            <div className="flex items-center space-x-4 sm:space-x-6">
+            <div className="flex items-center space-x-2 sm:space-x-4 md:space-x-6">
               {/* Progress */}
               <div className="text-right">
-                <div className="text-gray-700 text-sm font-semibold">
+                <div className="text-gray-700 text-xs sm:text-sm font-semibold">
                   {wordsCompleted} / {totalWords} words
                 </div>
                 <div className="text-gray-500 text-xs">
@@ -561,9 +561,9 @@ export default function QuizPage() {
               </div>
               
               {/* Timer */}
-              <div className="flex items-center space-x-2">
-                <Clock className={`h-4 w-4 ${timeLeft <= 5 ? 'text-red-500' : 'text-gray-600'}`} />
-                <div className={`text-xl font-bold transition-all duration-300 ${
+              <div className="flex items-center space-x-1 sm:space-x-2">
+                <Clock className={`h-3 w-3 sm:h-4 sm:w-4 ${timeLeft <= 5 ? 'text-red-500' : 'text-gray-600'}`} />
+                <div className={`text-lg sm:text-xl font-bold transition-all duration-300 ${
                   timeLeft <= 5 
                     ? 'text-red-500 animate-pulse' 
                     : timeLeft <= 10 
@@ -575,7 +575,7 @@ export default function QuizPage() {
               </div>
               
               {/* Progress Bar */}
-              <div className="w-24 sm:w-32 bg-gray-200 rounded-full h-2">
+              <div className="w-16 sm:w-24 md:w-32 bg-gray-200 rounded-full h-2">
                 <div 
                   className="bg-gradient-to-r from-blue-500 to-indigo-500 h-2 rounded-full transition-all duration-500"
                   style={{ width: `${((currentQuestion + 1) / questions.length) * 100}%` }}
@@ -595,23 +595,23 @@ export default function QuizPage() {
       </header>
 
       {/* Game Content */}
-      <main className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        <div className={`backdrop-blur-md rounded-3xl p-6 sm:p-12 border shadow-2xl transition-all duration-500 ${
+      <main className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
+        <div className={`backdrop-blur-md rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-12 border shadow-2xl transition-all duration-500 ${
           timeLeft <= 5 
             ? 'bg-red-50/90 border-red-200 shadow-red-200' 
             : 'bg-white/80 border-gray-200'
         }`}>
           {/* Question */}
-          <div className="text-center mb-8 sm:mb-12">
-            <div className={`inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-3xl mb-6 sm:mb-8 shadow-xl transition-all duration-500 ${
+          <div className="text-center mb-6 sm:mb-8 md:mb-12">
+            <div className={`inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-2xl sm:rounded-3xl mb-4 sm:mb-6 md:mb-8 shadow-xl transition-all duration-500 ${
               timeLeft <= 5 
                 ? 'bg-gradient-to-br from-red-500 to-red-600 animate-pulse' 
                 : 'bg-gradient-to-br from-blue-500 to-indigo-600'
             }`}>
               <Target className="h-8 w-8 sm:h-10 sm:w-10 text-white" />
             </div>
-            <h2 className="text-3xl sm:text-5xl font-bold text-gray-800 mb-4 sm:mb-6">{currentQ.englishWord.charAt(0).toUpperCase() + currentQ.englishWord.slice(1)}</h2>
-            <p className="text-gray-600 text-lg sm:text-xl">Choose the correct Hindi meaning</p>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-800 mb-3 sm:mb-4 md:mb-6 px-4">{currentQ.englishWord.charAt(0).toUpperCase() + currentQ.englishWord.slice(1)}</h2>
+            <p className="text-gray-600 text-base sm:text-lg md:text-xl px-4">Choose the correct Hindi meaning</p>
             {timeLeft <= 5 && (
               <div className="mt-4 inline-flex items-center space-x-2 bg-red-100 text-red-700 px-4 py-2 rounded-full text-sm font-semibold animate-pulse">
                 <Clock className="h-4 w-4" />
@@ -621,11 +621,11 @@ export default function QuizPage() {
           </div>
 
           {/* Options */}
-          <div className="grid gap-4 sm:gap-6 mb-8 sm:mb-12">
+          <div className="grid gap-3 sm:gap-4 md:gap-6 mb-6 sm:mb-8 md:mb-12">
             {currentQ.options.map((option, index) => {
               const isSelected = selectedAnswer === option.text;
               const isCorrectOption = option.isCorrect;
-              let buttonClass = "w-full p-4 sm:p-6 text-left rounded-2xl border-2 transition-all font-semibold text-lg sm:text-xl shadow-lg hover:shadow-xl min-h-[60px] sm:min-h-[80px] flex items-center";
+              let buttonClass = "w-full p-3 sm:p-4 md:p-6 text-left rounded-xl sm:rounded-2xl border-2 transition-all font-semibold text-base sm:text-lg md:text-xl shadow-lg hover:shadow-xl min-h-[50px] sm:min-h-[60px] md:min-h-[80px] flex items-center";
               
               if (showResult) {
                 if (isCorrectOption) {

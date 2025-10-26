@@ -236,27 +236,29 @@ export default function VaultPage() {
       {/* Header */}
       <header className="relative bg-white/80 backdrop-blur-md border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <Link href="/dashboard" className="flex items-center space-x-3">
-              <div className="p-3 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl shadow-lg">
-                <Zap className="h-8 w-8 text-white" />
+          <div className="flex justify-between items-center py-4 sm:py-6">
+            <Link href="/dashboard" className="flex items-center space-x-2 sm:space-x-3">
+              <div className="p-2 sm:p-3 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl sm:rounded-2xl shadow-lg">
+                <Zap className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
               </div>
-              <h1 className="text-3xl font-bold text-gray-900">Word Vault</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Word Vault</h1>
             </Link>
-            <nav className="flex space-x-4">
+            <nav className="flex space-x-1 sm:space-x-2">
               <Link
                 href="/dashboard"
-                className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors font-medium"
+                className="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-2 text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors font-medium text-sm sm:text-base"
               >
-                <ArrowLeft className="h-5 w-5" />
-                <span>Dashboard</span>
+                <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
+                <span className="hidden sm:inline">Dashboard</span>
+                <span className="sm:hidden">Back</span>
               </Link>
               <Link
                 href="/quiz"
-                className="px-6 py-3 bg-gradient-to-r from-green-600 to-teal-600 text-white font-bold rounded-xl hover:from-green-700 hover:to-teal-700 transition-all flex items-center space-x-2"
+                className="px-3 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-green-600 to-teal-600 text-white font-bold rounded-lg sm:rounded-xl hover:from-green-700 hover:to-teal-700 transition-all flex items-center space-x-1 sm:space-x-2 text-sm sm:text-base"
               >
-                <Trophy className="h-5 w-5" />
-                <span>Play Quiz</span>
+                <Trophy className="h-4 w-4 sm:h-5 sm:w-5" />
+                <span className="hidden sm:inline">Play Quiz</span>
+                <span className="sm:hidden">Quiz</span>
               </Link>
             </nav>
           </div>
@@ -266,47 +268,47 @@ export default function VaultPage() {
       {/* Main Content */}
       <main className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Hero Section */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-3xl mb-6 shadow-2xl">
-            <BookOpen className="h-10 w-10 text-white" />
+        <div className="text-center mb-6 sm:mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl sm:rounded-3xl mb-4 sm:mb-6 shadow-2xl">
+            <BookOpen className="h-8 w-8 sm:h-10 sm:w-10 text-white" />
           </div>
-          <h1 className="text-5xl font-bold text-gray-900 mb-4">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-3 sm:mb-4 px-4">
             Your <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Word Vault</span>
           </h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-6">
+          <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto mb-4 sm:mb-6 px-4">
             Discover, organize, and master your vocabulary collection
           </p>
           
           {/* Quick Stats */}
-          <div className="flex flex-wrap justify-center gap-6 mb-6">
+          <div className="flex flex-wrap justify-center gap-4 sm:gap-6 mb-4 sm:mb-6">
             <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">{words.length}</div>
-              <div className="text-sm text-gray-500">Total Words</div>
+              <div className="text-xl sm:text-2xl font-bold text-blue-600">{words.length}</div>
+              <div className="text-xs sm:text-sm text-gray-500">Total Words</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">{words.reduce((sum, word) => sum + word.reviewCount, 0)}</div>
-              <div className="text-sm text-gray-500">Reviews</div>
+              <div className="text-xl sm:text-2xl font-bold text-green-600">{words.reduce((sum, word) => sum + word.reviewCount, 0)}</div>
+              <div className="text-xs sm:text-sm text-gray-500">Reviews</div>
             </div>
           </div>
         </div>
 
         {/* Search and Filter Section */}
-        <div className="bg-white/80 backdrop-blur-lg rounded-3xl p-6 mb-8 border border-gray-200 shadow-xl">
+        <div className="bg-white/80 backdrop-blur-lg rounded-2xl sm:rounded-3xl p-4 sm:p-6 mb-6 sm:mb-8 border border-gray-200 shadow-xl">
           <div className="flex flex-col lg:flex-row gap-6 items-center">
             <div className="flex-1 relative">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-6 w-6 text-gray-400" />
+              <Search className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 sm:h-6 sm:w-6 text-gray-400" />
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search your words..."
-                className="w-full pl-12 pr-6 py-4 bg-gray-50 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-blue-500/30 focus:border-blue-500 transition-all text-gray-900 placeholder-gray-500 text-lg"
+                className="w-full pl-10 sm:pl-12 pr-4 sm:pr-6 py-3 sm:py-4 bg-gray-50 border-2 border-gray-200 rounded-xl sm:rounded-2xl focus:ring-4 focus:ring-blue-500/30 focus:border-blue-500 transition-all text-gray-900 placeholder-gray-500 text-base sm:text-lg"
               />
             </div>
-            <div className="flex gap-4">
+            <div className="flex gap-2 sm:gap-4 w-full lg:w-auto">
               <button
                 onClick={handleSortToggle}
-                className="px-6 py-4 bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-700 rounded-xl transition-all flex items-center space-x-2 font-semibold shadow-sm hover:shadow-md"
+                className="flex-1 sm:flex-none px-4 sm:px-6 py-3 sm:py-4 bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-700 rounded-lg sm:rounded-xl transition-all flex items-center justify-center space-x-1 sm:space-x-2 font-semibold shadow-sm hover:shadow-md text-sm sm:text-base"
               >
                 <span>
                   {sortOrder === 'default' ? 'Default' : 
@@ -314,7 +316,7 @@ export default function VaultPage() {
                 </span>
               </button>
               {filteredWords.length > 0 && (
-                <div className="px-6 py-4 bg-blue-50 text-blue-700 rounded-xl font-semibold flex items-center">
+                <div className="px-4 sm:px-6 py-3 sm:py-4 bg-blue-50 text-blue-700 rounded-lg sm:rounded-xl font-semibold flex items-center text-sm sm:text-base">
                   {startIndex + 1}-{Math.min(endIndex, filteredWords.length)} of {filteredWords.length}
                 </div>
               )}
@@ -351,22 +353,22 @@ export default function VaultPage() {
                     return (
                       <div key={wordId} className="bg-white/90 backdrop-blur-lg rounded-3xl p-6 shadow-xl border border-gray-200 hover:shadow-2xl transition-all duration-300 group">
                         {/* Main Word Card */}
-                        <div className="flex items-start justify-between mb-6">
-                          <div className="flex items-start space-x-6 flex-1">
+                        <div className="flex items-start justify-between mb-4 sm:mb-6">
+                          <div className="flex items-start space-x-3 sm:space-x-6 flex-1">
                             {/* Word Avatar */}
-                            <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-3xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
-                              <span className="text-white font-bold text-3xl">
+                            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl sm:rounded-3xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
+                              <span className="text-white font-bold text-2xl sm:text-3xl">
                                 {word.englishWord.charAt(0).toUpperCase()}
                               </span>
                             </div>
                             {/* Word Content */}
                             <div className="flex-1">
-                              <div className="flex items-center justify-between mb-4">
-                                <div className="flex items-center space-x-4">
-                                  <h3 className="text-4xl font-bold text-gray-900">{word.englishWord.charAt(0).toUpperCase() + word.englishWord.slice(1)}</h3>
+                              <div className="flex items-center justify-between mb-3 sm:mb-4">
+                                <div className="flex items-center space-x-2 sm:space-x-4">
+                                  <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900">{word.englishWord.charAt(0).toUpperCase() + word.englishWord.slice(1)}</h3>
                                   
                                   {/* Audio Controls */}
-                                  <div className="flex items-center space-x-3">
+                                  <div className="flex items-center space-x-2 sm:space-x-3">
                                     {word.audioUrl ? (
                                       <button
                                         onClick={() => playAudioUrl(word.audioUrl!)}
