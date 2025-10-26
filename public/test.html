@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WordyFy - PWA Test</title>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" href="/puzzle_icon.png">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        .card {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 10px 0;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        button:hover {
+            background: #2563eb;
+            transform: translateY(-2px);
+        }
+        .status {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        .success { background: rgba(34, 197, 94, 0.2); border: 1px solid #22c55e; }
+        .error { background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; }
+        .info { background: rgba(59, 130, 246, 0.2); border: 1px solid #3b82f6; }
+        .icon {
+            width: 64px;
+            height: 64px;
+            background: white;
+            border-radius: 12px;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="icon">🧩</div>
+        <h1 style="text-align: center; margin: 0;">WordyFy PWA Test</h1>
+        <p style="text-align: center; opacity: 0.8;">Testing Progressive Web App installation</p>
+    </div>
+
+    <div class="card">
+        <h2>📱 Installation Test</h2>
+        <button onclick="testInstall()">Test Install Prompt</button>
+        <button onclick="manualInstall()">Manual Install Guide</button>
+        <button onclick="clearCache()">Clear Cache & Reload</button>
+    </div>
+
+    <div class="card">
+        <h2>🔍 PWA Status</h2>
+        <div id="pwa-status"></div>
+    </div>
+
+    <div class="card">
+        <h2>📊 Debug Info</h2>
+        <div id="debug-info"></div>
+    </div>
+
+    <script>
+        let deferredPrompt;
+        
+        // Update PWA status
+        function updatePWAStatus() {
+            const statusDiv = document.getElementById('pwa-status');
+            const isInstalled = window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone;
+            
+            if (isInstalled) {
+                statusDiv.innerHTML = '<div class="status success">✅ App is installed and running in standalone mode!</div>';
+            } else if (deferredPrompt) {
+                statusDiv.innerHTML = '<div class="status info">🔔 Install prompt is ready!</div>';
+            } else {
+                statusDiv.innerHTML = '<div class="status error">❌ Install prompt not available</div>';
+            }
+        }
+
+        // Update debug info
+        function updateDebugInfo() {
+            const debugDiv = document.getElementById('debug-info');
+            debugDiv.innerHTML = `
+                <div class="status info">
+                    <strong>PWA Requirements:</strong><br>
+                    ✅ HTTPS: ${location.protocol === 'https:' || location.hostname === 'localhost'}<br>
+                    ✅ Manifest: ${document.querySelector('link[rel="manifest"]') ? 'Found' : 'Missing'}<br>
+                    ✅ Service Worker: ${'serviceWorker' in navigator ? 'Supported' : 'Not Supported'}<br>
+                    ✅ User Agent: ${navigator.userAgent.includes('Mobile') ? 'Mobile' : 'Desktop'}<br>
+                    ✅ Before Install Prompt: ${deferredPrompt ? 'Available' : 'Not Available'}
+                </div>
+            `;
+        }
+
+        // Test install prompt
+        function testInstall() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    updatePWAStatus();
+                    console.log('Install prompt result:', choiceResult.outcome);
+                });
+            } else {
+                alert('No install prompt available. Try manual installation.');
+            }
+        }
+
+        // Manual install guide
+        function manualInstall() {
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            const isAndroid = /Android/.test(navigator.userAgent);
+            
+            let instructions = '';
+            if (isIOS) {
+                instructions = 'iOS Safari: Tap Share → Add to Home Screen';
+            } else if (isAndroid) {
+                instructions = 'Android Chrome: Tap menu → Add to Home Screen';
+            } else {
+                instructions = 'Desktop: Look for install button in address bar';
+            }
+            
+            alert(instructions);
+        }
+
+        // Clear cache
+        function clearCache() {
+            if ('caches' in window) {
+                caches.keys().then((cacheNames) => {
+                    return Promise.all(
+                        cacheNames.map((cacheName) => {
+                            return caches.delete(cacheName);
+                        })
+                    );
+                }).then(() => {
+                    alert('Cache cleared! Reloading page...');
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1000);
+                });
+            } else {
+                alert('Cache API not supported');
+            }
+        }
+
+        // Service worker registration
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js')
+                .then((registration) => {
+                    console.log('Service Worker registered:', registration);
+                })
+                .catch((error) => {
+                    console.error('Service Worker registration failed:', error);
+                });
+        }
+
+        // Before install prompt
+        window.addEventListener('beforeinstallprompt', (e) => {
+            console.log('beforeinstallprompt event fired');
+            e.preventDefault();
+            deferredPrompt = e;
+            updatePWAStatus();
+            updateDebugInfo();
+        });
+
+        // App installed
+        window.addEventListener('appinstalled', () => {
+            console.log('PWA was installed');
+            updatePWAStatus();
+        });
+
+        // Initial updates
+        updatePWAStatus();
+        updateDebugInfo();
+        
+        // Update every 2 seconds
+        setInterval(() => {
+            updatePWAStatus();
+            updateDebugInfo();
+        }, 2000);
+    </script>
+</body>
+</html>

@@ -1,40 +1,25 @@
-const CACHE_NAME = 'wordyfy-v5';
+const CACHE_NAME = 'wordyfy-simple';
 const urlsToCache = [
   '/',
-  '/dashboard',
-  '/quiz',
-  '/vault',
-  '/history',
-  '/advanced-game',
-  '/login',
-  '/signup',
   '/manifest.json',
-  '/favicon.ico',
-  '/favicon.png',
-  '/puzzle_icon.png',
-  '/icon-192x192.png',
-  '/icon-512x512.png'
+  '/puzzle_icon.png'
 ];
 
-// Install event - cache resources
 self.addEventListener('install', (event) => {
   console.log('Service Worker installing...');
   event.waitUntil(
-    caches.delete(CACHE_NAME).then(() => {
-      return caches.open(CACHE_NAME);
-    }).then((cache) => {
-      console.log('Opened fresh cache');
-      return cache.addAll(urlsToCache);
-    }).then(() => {
-      console.log('All resources cached');
-      return self.skipWaiting();
-    }).catch((error) => {
-      console.error('Cache installation failed:', error);
-    })
+    caches.open(CACHE_NAME)
+      .then((cache) => {
+        console.log('Opened cache');
+        return cache.addAll(urlsToCache);
+      })
+      .then(() => {
+        console.log('All resources cached');
+        return self.skipWaiting();
+      })
   );
 });
 
-// Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
   console.log('Service Worker activating...');
   event.waitUntil(
@@ -50,25 +35,17 @@ self.addEventListener('activate', (event) => {
     }).then(() => {
       console.log('Service Worker activated');
       return self.clients.claim();
-    }).catch((error) => {
-      console.error('Service Worker activation failed:', error);
     })
   );
 });
 
-// Fetch event - serve from cache when offline
 self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request)
       .then((response) => {
-        // Return cached version or fetch from network
         if (response) {
           return response;
         }
-        return fetch(event.request);
-      })
-      .catch((error) => {
-        console.error('Fetch failed:', error);
         return fetch(event.request);
       })
   );

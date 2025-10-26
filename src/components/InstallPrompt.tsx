@@ -15,8 +15,15 @@ interface BeforeInstallPromptEvent extends Event {
 export default function InstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
+  const [isInstalled, setIsInstalled] = useState(false);
 
   useEffect(() => {
+    // Check if already installed
+    if (window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone) {
+      setIsInstalled(true);
+      return;
+    }
+
     const handleBeforeInstallPrompt = (e: Event) => {
       console.log('🔔 beforeinstallprompt event fired');
       e.preventDefault();
@@ -26,6 +33,7 @@ export default function InstallPrompt() {
 
     const handleAppInstalled = () => {
       console.log('✅ PWA was installed successfully!');
+      setIsInstalled(true);
       setShowInstallPrompt(false);
       setDeferredPrompt(null);
     };
@@ -33,7 +41,7 @@ export default function InstallPrompt() {
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('appinstalled', handleAppInstalled);
 
-    // Debug: Check if PWA criteria are met
+    // Debug info
     console.log('🔍 PWA Debug Info:');
     console.log('- Service Worker:', 'serviceWorker' in navigator);
     console.log('- Manifest:', document.querySelector('link[rel="manifest"]')?.getAttribute('href'));
@@ -73,19 +81,11 @@ export default function InstallPrompt() {
 
   const handleDismiss = () => {
     setShowInstallPrompt(false);
-    // Don't show again for this session
     localStorage.setItem('installPromptDismissed', 'true');
   };
 
-  // Don't show if user dismissed it in this session
-  useEffect(() => {
-    const dismissed = localStorage.getItem('installPromptDismissed');
-    if (dismissed) {
-      setShowInstallPrompt(false);
-    }
-  }, []);
-
-  if (!showInstallPrompt || !deferredPrompt) {
+  // Don't show if already installed or dismissed
+  if (isInstalled || !showInstallPrompt || !deferredPrompt) {
     return null;
   }
 
@@ -103,7 +103,7 @@ export default function InstallPrompt() {
               Install WordyFy
             </h3>
             <p className="text-xs text-gray-600 mb-3">
-              Add to your home screen for quick access and offline learning!
+              Add to your home screen for quick access!
             </p>
             <div className="flex space-x-2">
               <button
