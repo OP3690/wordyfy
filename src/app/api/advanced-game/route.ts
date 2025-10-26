@@ -137,7 +137,7 @@ export async function GET(request: NextRequest) {
       ].sort(() => Math.random() - 0.5);
 
       questions.push({
-        _id: selectedWord._id,
+        _id: selectedWord._id.toString(),
         englishWord: selectedWord.word,
         correctAnswer: selectedWord.translation,
         options,
