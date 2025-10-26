@@ -77,12 +77,27 @@ export default function Dashboard() {
     'existance': ['existence'],
     'occassion': ['occasion'],
     'recomend': ['recommend'],
-    'acheive': ['achieve']
+    'acheive': ['achieve'],
+    'ironnn': ['iron'],
+    'ironn': ['iron'],
+    'irron': ['iron'],
+    'appple': ['apple'],
+    'appel': ['apple'],
+    'aple': ['apple'],
+    'yelllow': ['yellow'],
+    'yello': ['yellow'],
+    'yelow': ['yellow'],
+    'visiblle': ['visible'],
+    'visibl': ['visible'],
+    'visable': ['visible']
   };
 
   // Spelling suggestion functions
   const getSpellingSuggestions = async (word: string) => {
+    console.log('Getting suggestions for:', word);
+    
     if (!word || word.length < 2) {
+      console.log('Word too short, clearing suggestions');
       setSuggestions([]);
       setShowSuggestions(false);
       setIsValidWord(true);
@@ -90,9 +105,11 @@ export default function Dashboard() {
     }
 
     const lowerWord = word.toLowerCase().trim();
+    console.log('Processing word:', lowerWord);
     
     // Check common misspellings first
     if (commonMisspellings[lowerWord]) {
+      console.log('Found in common misspellings:', commonMisspellings[lowerWord]);
       setSuggestions(commonMisspellings[lowerWord]);
       setShowSuggestions(true);
       setIsValidWord(false);
@@ -100,18 +117,54 @@ export default function Dashboard() {
     }
 
     try {
+      console.log('Fetching from Datamuse API...');
       // Try spelling suggestions first
       const response = await fetch(`https://api.datamuse.com/words?sp=${lowerWord}&max=5`);
-      const data = await response.json();
+      console.log('API response status:', response.status);
       
-      if (data && data.length > 0) {
-        const suggestions = data.map((item: any) => item.word).filter((suggestion: string) => 
-          suggestion.toLowerCase() !== lowerWord && 
-          suggestion.length > 1
-        );
+      if (response.ok) {
+        const data = await response.json();
+        console.log('API response data:', data);
         
-        if (suggestions.length > 0) {
-          setSuggestions(suggestions);
+        if (data && data.length > 0) {
+          const suggestions = data.map((item: any) => item.word).filter((suggestion: string) => 
+            suggestion.toLowerCase() !== lowerWord && 
+            suggestion.length > 1
+          );
+          
+          console.log('Filtered suggestions:', suggestions);
+          
+          if (suggestions.length > 0) {
+            setSuggestions(suggestions);
+        setShowSuggestions(true);
+            setIsValidWord(false);
+            console.log('Suggestions set:', suggestions);
+          } else {
+            console.log('No valid suggestions found');
+        setSuggestions([]);
+        setShowSuggestions(false);
+            setIsValidWord(true);
+          }
+        } else {
+          console.log('No data from API, trying fuzzy matching');
+          const fuzzySuggestions = getFuzzySuggestions(lowerWord);
+          if (fuzzySuggestions.length > 0) {
+            console.log('Found fuzzy suggestions:', fuzzySuggestions);
+            setSuggestions(fuzzySuggestions);
+            setShowSuggestions(true);
+            setIsValidWord(false);
+          } else {
+            setSuggestions([]);
+            setShowSuggestions(false);
+            setIsValidWord(true);
+          }
+        }
+      } else {
+        console.log('API request failed:', response.status, 'trying fuzzy matching');
+        const fuzzySuggestions = getFuzzySuggestions(lowerWord);
+        if (fuzzySuggestions.length > 0) {
+          console.log('Found fuzzy suggestions:', fuzzySuggestions);
+          setSuggestions(fuzzySuggestions);
           setShowSuggestions(true);
           setIsValidWord(false);
         } else {
@@ -119,18 +172,57 @@ export default function Dashboard() {
           setShowSuggestions(false);
           setIsValidWord(true);
         }
+      }
+      
+    } catch (error) {
+      console.error('Error fetching suggestions:', error, 'trying fuzzy matching');
+      const fuzzySuggestions = getFuzzySuggestions(lowerWord);
+      if (fuzzySuggestions.length > 0) {
+        console.log('Found fuzzy suggestions:', fuzzySuggestions);
+        setSuggestions(fuzzySuggestions);
+        setShowSuggestions(true);
+        setIsValidWord(false);
       } else {
         setSuggestions([]);
         setShowSuggestions(false);
         setIsValidWord(true);
       }
-      
-    } catch (error) {
-      console.error('Error fetching suggestions:', error);
-      setSuggestions([]);
-      setShowSuggestions(false);
-      setIsValidWord(true);
     }
+    };
+
+  // Simple fuzzy matching for better suggestions
+  const getFuzzySuggestions = (word: string): string[] => {
+    const commonWords = [
+      'apple', 'iron', 'yellow', 'happy', 'water', 'book', 'house', 'car', 'tree', 'sun',
+      'moon', 'star', 'bird', 'fish', 'dog', 'cat', 'red', 'blue', 'green', 'black', 'white',
+      'big', 'small', 'good', 'bad', 'hot', 'cold', 'fast', 'slow', 'new', 'old', 'young',
+      'beautiful', 'ugly', 'strong', 'weak', 'rich', 'poor', 'happy', 'sad', 'angry', 'calm'
+    ];
+    
+    const suggestions: string[] = [];
+    const target = word.toLowerCase();
+    
+    for (const commonWord of commonWords) {
+      // Check if the word is similar (simple Levenshtein distance)
+      if (Math.abs(target.length - commonWord.length) <= 2) {
+        let differences = 0;
+        const minLength = Math.min(target.length, commonWord.length);
+        
+        for (let i = 0; i < minLength; i++) {
+          if (target[i] !== commonWord[i]) {
+            differences++;
+          }
+        }
+        
+        differences += Math.abs(target.length - commonWord.length);
+        
+        if (differences <= 2 && differences > 0) {
+          suggestions.push(commonWord);
+        }
+      }
+    }
+    
+    return suggestions.slice(0, 3);
   };
 
   const handleSuggestionClick = (suggestion: string) => {
@@ -231,7 +323,7 @@ export default function Dashboard() {
     if (!word.trim()) {
       return;
     }
-
+    
     // Check if userId is available
     if (!userId) {
       console.error('No userId available');
@@ -268,7 +360,7 @@ export default function Dashboard() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
+        body: JSON.stringify({ 
           englishWord: trimmedWord,
           userId: userId
         }),
@@ -287,7 +379,7 @@ export default function Dashboard() {
         
         // Reload words to update statistics
         loadUserWords(userId);
-      } else {
+        } else {
         console.error('API Error:', data);
         setMessageWithTimeout(`❌ Error: ${data.error || 'Failed to add word'}`);
       }
@@ -392,10 +484,10 @@ export default function Dashboard() {
                 <div className="flex items-center space-x-2">
                   <div className="flex-1 relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <input
-                      type="text"
-                      value={word}
-                      onChange={(e) => {
+                  <input
+                    type="text"
+                    value={word}
+                    onChange={(e) => {
                         setWord(e.target.value);
                         setMessage('');
                       }}
@@ -404,9 +496,9 @@ export default function Dashboard() {
                       className={`w-full pl-10 pr-4 py-2.5 bg-gray-50 border-0 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all ${
                         !isValidWord && showSuggestions ? 'ring-2 ring-red-500' : ''
                       }`}
-                      spellCheck={true}
-                      autoCorrect="on"
-                      autoCapitalize="off"
+                    spellCheck={true}
+                    autoCorrect="on"
+                    autoCapitalize="off"
                     />
                     {!isValidWord && showSuggestions && (
                       <AlertCircle className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-red-500" />
@@ -433,7 +525,7 @@ export default function Dashboard() {
                     <div className="p-2">
                       <div className="text-xs text-gray-500 px-2 py-1 font-medium">Did you mean:</div>
                       {suggestions.map((suggestion, index) => (
-                        <button
+                      <button
                           key={index}
                           onClick={(e) => {
                             e.preventDefault();
@@ -446,13 +538,13 @@ export default function Dashboard() {
                           <div className="opacity-0 group-hover:opacity-100 transition-opacity">
                             <svg className="h-4 w-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                            </svg>
-                          </div>
-                        </button>
-                      ))}
+                        </svg>
                     </div>
-                  </div>
-                )}
+                      </button>
+                      ))}
+                          </div>
+                                  </div>
+                                )}
                               </div>
               
               {/* Message Display - Minimal */}
@@ -513,21 +605,21 @@ export default function Dashboard() {
                   {currentWordData.meanings.map((meaning: any, meaningIndex: number) => (
                     <div key={meaningIndex} className="space-y-3">
                       {/* Part of Speech */}
-                      <div className="flex items-center space-x-2">
+                        <div className="flex items-center space-x-2">
                         <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-lg">
-                          {meaning.partOfSpeech}
-                        </span>
-                      </div>
+                                {meaning.partOfSpeech}
+                              </span>
+                            </div>
                       
                       {/* All Definitions */}
                       {meaning.definitions.map((def: any, defIndex: number) => (
-                        <div key={defIndex} className="space-y-2">
+                                <div key={defIndex} className="space-y-2">
                           <p className="text-sm text-gray-800 leading-relaxed font-medium">
                             {defIndex + 1}. {def.definition}
-                          </p>
+                                  </p>
                           
                           {/* Examples */}
-                          {def.example && (
+                                  {def.example && (
                             <div className="bg-gray-50 rounded-lg p-3 border-l-4 border-blue-200">
                               <div className="flex items-start space-x-2">
                                 <div className="w-2 h-2 bg-blue-400 rounded-full mt-2 flex-shrink-0"></div>
@@ -542,10 +634,10 @@ export default function Dashboard() {
                                   )}
                                 </div>
                               </div>
-                            </div>
-                          )}
-                        </div>
-                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
                       
                       {/* Synonyms and Antonyms - Enhanced */}
                       <div className="space-y-3">
@@ -560,11 +652,11 @@ export default function Dashboard() {
                                 <span key={synIndex} className="px-3 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full border border-green-200 hover:bg-green-200 transition-colors">
                                   {typeof synonym === 'string' ? synonym.charAt(0).toUpperCase() + synonym.slice(1) : synonym.english?.charAt(0).toUpperCase() + synonym.english?.slice(1)}
                                 </span>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                        
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                         {meaning.antonyms && meaning.antonyms.length > 0 && (
                           <div className="bg-gradient-to-r from-red-50 to-rose-50 rounded-lg p-3 border border-red-200">
                             <div className="flex items-center space-x-2 mb-2">
@@ -575,15 +667,15 @@ export default function Dashboard() {
                               {meaning.antonyms.map((antonym: any, antIndex: number) => (
                                 <span key={antIndex} className="px-3 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full border border-red-200 hover:bg-red-200 transition-colors">
                                   {typeof antonym === 'string' ? antonym.charAt(0).toUpperCase() + antonym.slice(1) : antonym.english?.charAt(0).toUpperCase() + antonym.english?.slice(1)}
-                                </span>
+                          </span>
                               ))}
-                            </div>
-                          </div>
-                        )}
                       </div>
                     </div>
-                  ))}
+                  )}
                 </div>
+              </div>
+                  ))}
+                  </div>
               )}
             </div>
           </div>
