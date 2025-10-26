@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Zap, Eye, EyeOff, Sparkles } from 'lucide-react';
+import { Zap, Eye, EyeOff, Sparkles, ArrowLeft, LogIn } from 'lucide-react';
 import Link from 'next/link';
 
 export default function LoginPage() {
@@ -58,129 +58,134 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      {/* Animated Background */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-100/40 rounded-full mix-blend-multiply filter blur-xl opacity-60 animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-indigo-100/40 rounded-full mix-blend-multiply filter blur-xl opacity-60 animate-pulse"></div>
-        <div className="absolute top-40 left-40 w-80 h-80 bg-cyan-100/40 rounded-full mix-blend-multiply filter blur-xl opacity-60 animate-pulse"></div>
-      </div>
-
-      {/* Header */}
-      <header className="relative bg-white/80 backdrop-blur-md border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <Link href="/" className="flex items-center space-x-3">
-              <div className="p-3 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl shadow-lg">
-                <Zap className="h-8 w-8 text-white" />
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+      {/* Mobile Header */}
+      <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-sm">
+        <div className="max-w-md mx-auto px-4">
+          <div className="flex items-center py-4">
+            <Link href="/" className="flex items-center space-x-2">
+              <ArrowLeft className="h-5 w-5 text-gray-600" />
+              <span className="text-gray-600 font-medium">Back</span>
+            </Link>
+            <div className="flex-1 text-center">
+              <div className="flex items-center justify-center space-x-2">
+                <div className="p-1.5 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg">
+                  <Zap className="h-4 w-4 text-white" />
+                </div>
+                <span className="text-lg font-bold text-gray-900">WordyFy</span>
               </div>
-              <h1 className="text-3xl font-bold text-gray-900">Wordyfy</h1>
-            </Link>
-            <Link
-              href="/signup"
-              className="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors font-semibold"
-            >
-              Sign Up
-            </Link>
+            </div>
+            <div className="w-16"></div>
           </div>
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="relative max-w-lg mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="bg-white/90 backdrop-blur-md rounded-3xl p-6 border border-gray-200 shadow-2xl">
-          {/* Logo Section */}
-          <div className="text-center mb-6">
-            <div className="inline-flex items-center justify-center w-14 h-14 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl mb-3 shadow-lg">
-              <Sparkles className="h-7 w-7 text-white" />
-            </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Welcome Back!</h2>
-            <p className="text-gray-600 text-sm">Sign in to continue your learning journey</p>
+      {/* Login Content */}
+      <main className="max-w-md mx-auto px-4 py-8">
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl mb-6 shadow-xl">
+            <LogIn className="h-8 w-8 text-white" />
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Welcome Back!</h1>
+          <p className="text-gray-600">Sign in to continue your learning journey</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+            <input
+              type="email"
+              value={formData.email}
+              onChange={(e) => handleInputChange('email', e.target.value)}
+              className={`w-full px-4 py-3 bg-white border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all ${
+                errors.email ? 'border-red-300' : 'border-gray-200'
+              }`}
+              placeholder="your@email.com"
+              autoComplete="email"
+            />
+            {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Email Address</label>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
+            <div className="relative">
               <input
-                type="email"
-                value={formData.email}
-                onChange={(e) => handleInputChange('email', e.target.value)}
-                className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-300 rounded-xl focus:ring-4 focus:ring-blue-500/50 focus:border-blue-500 transition-all text-gray-900 placeholder-gray-500"
-                placeholder="Enter your email address"
-                required
-                autoComplete="email"
+                type={showPassword ? 'text' : 'password'}
+                value={formData.password}
+                onChange={(e) => handleInputChange('password', e.target.value)}
+                className={`w-full px-4 py-3 pr-12 bg-white border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all ${
+                  errors.password ? 'border-red-300' : 'border-gray-200'
+                }`}
+                placeholder="Enter your password"
+                autoComplete="current-password"
               />
-              {errors.email && <p className="text-red-600 text-xs mt-1">{errors.email}</p>}
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Password</label>
-              <div className="relative">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={formData.password}
-                  onChange={(e) => handleInputChange('password', e.target.value)}
-                  className="w-full px-4 py-3 pr-12 bg-gray-50 border-2 border-gray-300 rounded-xl focus:ring-4 focus:ring-blue-500/50 focus:border-blue-500 transition-all text-gray-900 placeholder-gray-500"
-                  placeholder="Enter your password"
-                  required
-                  autoComplete="current-password"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-blue-600 transition-colors"
-                >
-                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                </button>
-              </div>
-              {errors.password && <p className="text-red-600 text-xs mt-1">{errors.password}</p>}
-            </div>
-
-            <div className="flex items-center justify-between">
-              <label className="flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-2 bg-gray-100"
-                />
-                <span className="ml-2 text-sm text-gray-700 font-medium">Remember me</span>
-              </label>
-              <Link
-                href="/forgot-password"
-                className="text-xs text-blue-600 hover:text-blue-700 font-semibold transition-colors"
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
               >
-                Forgot password?
-              </Link>
+                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+              </button>
             </div>
+            {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
+          </div>
 
-            {errors.submit && (
-              <div className="bg-red-50 border border-red-200 rounded-xl p-4">
-                <p className="text-red-600 text-sm">{errors.submit}</p>
-              </div>
-            )}
+          {errors.submit && (
+            <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+              <p className="text-red-600 text-sm">{errors.submit}</p>
+            </div>
+          )}
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-2xl hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 transition-all transform hover:scale-105 shadow-xl hover:shadow-2xl flex items-center justify-center space-x-3 text-lg"
-            >
-              {loading ? (
-                <>
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
-                  <span>Signing in...</span>
-                </>
-              ) : (
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all font-semibold shadow-lg flex items-center justify-center space-x-2 disabled:opacity-50"
+          >
+            {loading ? (
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            ) : (
+              <>
                 <span>Sign In</span>
-              )}
-            </button>
-          </form>
+                <LogIn className="h-4 w-4" />
+              </>
+            )}
+          </button>
+        </form>
 
-          <div className="mt-4 text-center">
-            <p className="text-gray-700">
-              Don't have an account?{' '}
-              <Link href="/signup" className="text-blue-600 hover:text-blue-700 font-bold transition-colors">
-                Create one here
-              </Link>
-            </p>
+        {/* Quick Actions */}
+        <div className="mt-8 space-y-4">
+          <div className="text-center">
+            <Link
+              href="/signup"
+              className="text-blue-600 hover:text-blue-700 font-semibold text-sm"
+            >
+              Don't have an account? Create one
+            </Link>
+          </div>
+
+          <div className="text-center">
+            <button className="text-gray-500 hover:text-gray-700 text-sm">
+              Forgot your password?
+            </button>
+          </div>
+        </div>
+
+        {/* Features Preview */}
+        <div className="mt-8">
+          <h3 className="text-sm font-semibold text-gray-900 mb-4 text-center">What you'll get:</h3>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="bg-white rounded-lg p-3 text-center shadow-sm border border-gray-100">
+              <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-2">
+                <Sparkles className="h-4 w-4 text-blue-600" />
+              </div>
+              <div className="text-xs font-medium text-gray-900">Smart Learning</div>
+            </div>
+            <div className="bg-white rounded-lg p-3 text-center shadow-sm border border-gray-100">
+              <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-2">
+                <Zap className="h-4 w-4 text-green-600" />
+              </div>
+              <div className="text-xs font-medium text-gray-900">Instant Quiz</div>
+            </div>
           </div>
         </div>
       </main>

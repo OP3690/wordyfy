@@ -25,19 +25,60 @@ export default function QuizPage() {
   const [allWordsCompleted, setAllWordsCompleted] = useState(false);
   const [totalWords, setTotalWords] = useState(0);
   const [wordsCompleted, setWordsCompleted] = useState(0);
+  const [quizResults, setQuizResults] = useState<Array<{question: any, isCorrect: boolean}>>([]);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    fetchQuestions();
+    let timeoutId: NodeJS.Timeout;
     
-    const timeout = setTimeout(() => {
+    const loadQuiz = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        console.log('🔄 Fetching quiz questions...');
+        const response = await fetch('/api/quiz');
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        console.log('✅ Quiz questions loaded:', data.questions?.length || 0);
+        
+        if (data.questions && data.questions.length > 0) {
+          setQuestions(data.questions);
+          setTotalWords(data.questions.length);
+          setTimerActive(true);
+          setLoading(false);
+          // Clear timeout since we successfully loaded
+          clearTimeout(timeoutId);
+        } else {
+          setError(data.error || 'No quiz questions available. Add more words to your vault first.');
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error('❌ Error fetching questions:', error);
+        if (error instanceof Error) {
+          setError(`Failed to load quiz: ${error.message}`);
+        } else {
+          setError('Failed to load quiz. Please check your connection and try again.');
+        }
+        setLoading(false);
+      }
+    };
+    
+    // Set timeout for loading
+    timeoutId = setTimeout(() => {
       if (loading) {
         setError('Quiz loading is taking too long. Please check your connection and try again.');
         setLoading(false);
       }
-    }, 10000);
+    }, 10000); // Reduced to 10s for better UX
     
-    return () => clearTimeout(timeout);
+    loadQuiz();
+    
+    return () => clearTimeout(timeoutId);
   }, []);
 
   // Timer effect
@@ -62,19 +103,30 @@ export default function QuizPage() {
       setLoading(true);
       setError(null);
       
+      console.log('🔄 Fetching quiz questions...');
       const response = await fetch('/api/quiz');
-      const data = await response.json();
       
-      if (response.ok && data.questions && data.questions.length > 0) {
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      console.log('✅ Quiz questions loaded:', data.questions?.length || 0);
+      
+      if (data.questions && data.questions.length > 0) {
         setQuestions(data.questions);
         setTotalWords(data.questions.length);
         setTimerActive(true);
       } else {
-        setError(data.error || 'Failed to load quiz questions');
+        setError(data.error || 'No quiz questions available. Add more words to your vault first.');
       }
     } catch (error) {
-      console.error('Error fetching questions:', error);
-      setError('Failed to load quiz. Please try again.');
+      console.error('❌ Error fetching questions:', error);
+      if (error instanceof Error) {
+        setError(`Failed to load quiz: ${error.message}`);
+      } else {
+        setError('Failed to load quiz. Please check your connection and try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -103,7 +155,51 @@ export default function QuizPage() {
     }
   };
 
+  const saveQuizStats = async (finalScore: number, totalQuestions: number, quizQuestions: any[]) => {
+    try {
+      const userId = localStorage.getItem('userId');
+      if (!userId) return;
+
+      const accuracy = Math.round((finalScore / totalQuestions) * 100);
+      
+      const response = await fetch('/api/quiz-stats', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId,
+          quizScore: finalScore,
+          totalQuestions,
+          accuracy,
+          quizQuestions
+        }),
+      });
+
+      if (response.ok) {
+        console.log('✅ Quiz stats saved successfully');
+        // Dispatch custom event to notify dashboard of stats update
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('quizStatsUpdated'));
+        }
+      } else {
+        console.error('❌ Failed to save quiz stats');
+      }
+    } catch (error) {
+      console.error('❌ Error saving quiz stats:', error);
+    }
+  };
+
   const handleNextQuestion = () => {
+    // Record the current question result
+    const currentQ = questions[currentQuestion];
+    const isCorrect = selectedAnswer === currentQ.correctAnswer;
+    
+    setQuizResults(prev => [...prev, {
+      question: currentQ,
+      isCorrect: isCorrect
+    }]);
+
     if (currentQuestion < questions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
       setSelectedAnswer(null);
@@ -112,6 +208,20 @@ export default function QuizPage() {
       setTimerActive(true);
       setWordsCompleted(wordsCompleted + 1);
     } else {
+      // Quiz completed - save stats with quiz results
+      const finalResults = [...quizResults, {
+        question: currentQ,
+        isCorrect: isCorrect
+      }];
+      
+      // Format quiz questions for the API
+      const formattedQuestions = finalResults.map(result => ({
+        _id: result.question._id,
+        englishWord: result.question.englishWord,
+        isCorrect: result.isCorrect
+      }));
+      
+      saveQuizStats(score, questions.length, formattedQuestions);
       setGameCompleted(true);
       setAllWordsCompleted(true);
     }
@@ -124,10 +234,15 @@ export default function QuizPage() {
     setScore(0);
     setGameCompleted(false);
     setTimeLeft(15);
-    setTimerActive(true);
+    setTimerActive(false);
     setWordsCompleted(0);
+    setQuizResults([]);
     setAllWordsCompleted(false);
-    fetchQuestions();
+    setError(null);
+    setLoading(true);
+    
+    // Reload the page to trigger fresh quiz generation
+    window.location.reload();
   };
 
   const playPronunciation = (word: string, isHindi: boolean = false) => {
@@ -204,7 +319,7 @@ export default function QuizPage() {
           <p className="text-sm text-gray-600 mb-6">{error}</p>
           <div className="space-y-2">
             <button
-              onClick={fetchQuestions}
+              onClick={() => window.location.reload()}
               className="w-full px-4 py-2.5 bg-blue-500 text-white text-sm font-medium rounded-xl hover:bg-blue-600 transition-colors flex items-center justify-center space-x-2"
             >
               <RefreshCw className="h-4 w-4" />
@@ -275,6 +390,12 @@ export default function QuizPage() {
               </button>
               <Link
                 href="/dashboard"
+                onClick={() => {
+                  // Force refresh dashboard stats
+                  if (typeof window !== 'undefined') {
+                    window.location.href = '/dashboard';
+                  }
+                }}
                 className="block w-full px-4 py-2.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-xl hover:bg-gray-200 transition-colors"
               >
                 Back to Dashboard
@@ -443,11 +564,11 @@ export default function QuizPage() {
             <div className="text-xs text-gray-500">Correct</div>
           </div>
           <div className="bg-white rounded-xl p-3 text-center">
-            <div className="text-lg font-semibold text-red-600">{currentQuestion - score}</div>
+            <div className="text-lg font-semibold text-red-600">{Math.max(0, currentQuestion - score)}</div>
             <div className="text-xs text-gray-500">Incorrect</div>
           </div>
           <div className="bg-white rounded-xl p-3 text-center">
-            <div className="text-lg font-semibold text-blue-600">{Math.round((score / Math.max(currentQuestion, 1)) * 100)}%</div>
+            <div className="text-lg font-semibold text-blue-600">{currentQuestion > 0 ? Math.round((score / currentQuestion) * 100) : 0}%</div>
             <div className="text-xs text-gray-500">Accuracy</div>
           </div>
         </div>

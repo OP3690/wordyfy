@@ -40,6 +40,10 @@ export interface Word {
   };
   // Legacy field for backward compatibility
   hindiTranslation?: string;
+  // Quiz performance tracking
+  quizAppearances?: number; // How many times this word has appeared in quizzes
+  quizCorrectAnswers?: number; // How many times this word was answered correctly
+  quizAccuracy?: number; // Accuracy percentage for this word (0-100)
 }
 
 export interface WordDefinition {

@@ -162,8 +162,11 @@ export default function VaultPage() {
   const toggleWordExpansion = (wordId: string) => {
     const newExpanded = new Set(expandedWords);
     if (newExpanded.has(wordId)) {
+      // If the word is already expanded, collapse it
       newExpanded.delete(wordId);
     } else {
+      // If expanding a new word, clear all others first (accordion behavior)
+      newExpanded.clear();
       newExpanded.add(wordId);
     }
     setExpandedWords(newExpanded);
@@ -314,6 +317,23 @@ export default function VaultPage() {
                               <Star className="h-3 w-3 text-gray-400" />
                               <span className="text-xs text-gray-500">{word.reviewCount}</span>
                             </div>
+                            {/* Quiz Stats */}
+                            {(word.quizAppearances && word.quizAppearances > 0) && (
+                              <>
+                                <div className="flex items-center space-x-1">
+                                  <div className="h-3 w-3 bg-blue-100 rounded-full flex items-center justify-center">
+                                    <span className="text-xs font-semibold text-blue-600">Q</span>
+                                  </div>
+                                  <span className="text-xs text-gray-500">{word.quizAppearances}</span>
+                                </div>
+                                <div className="flex items-center space-x-1">
+                                  <div className="h-3 w-3 bg-green-100 rounded-full flex items-center justify-center">
+                                    <span className="text-xs font-semibold text-green-600">%</span>
+                                  </div>
+                                  <span className="text-xs text-gray-500">{word.quizAccuracy || 0}%</span>
+                                </div>
+                              </>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -393,9 +413,16 @@ export default function VaultPage() {
                                         </div>
                                         <div className="flex flex-wrap gap-2">
                                           {meaning.synonyms.map((synonym: any, synIndex: number) => (
-                                            <span key={synIndex} className="px-3 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full border border-green-200 hover:bg-green-200 transition-colors">
-                                              {typeof synonym === 'string' ? synonym.charAt(0).toUpperCase() + synonym.slice(1) : synonym.english?.charAt(0).toUpperCase() + synonym.english?.slice(1)}
-                                            </span>
+                                            <div key={synIndex} className="flex flex-col items-center">
+                                              <span className="px-3 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full border border-green-200 hover:bg-green-200 transition-colors">
+                                                {typeof synonym === 'string' ? synonym.charAt(0).toUpperCase() + synonym.slice(1) : synonym.english?.charAt(0).toUpperCase() + synonym.english?.slice(1)}
+                                              </span>
+                                              {(typeof synonym === 'object' && synonym.hindi) && (
+                                                <span className="text-xs text-gray-600 mt-1 text-center">
+                                                  {synonym.hindi}
+                                                </span>
+                                              )}
+                                            </div>
                                           ))}
                                         </div>
                                       </div>
@@ -409,9 +436,16 @@ export default function VaultPage() {
                                         </div>
                                         <div className="flex flex-wrap gap-2">
                                           {meaning.antonyms.map((antonym: any, antIndex: number) => (
-                                            <span key={antIndex} className="px-3 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full border border-red-200 hover:bg-red-200 transition-colors">
-                                              {typeof antonym === 'string' ? antonym.charAt(0).toUpperCase() + antonym.slice(1) : antonym.english?.charAt(0).toUpperCase() + antonym.english?.slice(1)}
-                                            </span>
+                                            <div key={antIndex} className="flex flex-col items-center">
+                                              <span className="px-3 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full border border-red-200 hover:bg-red-200 transition-colors">
+                                                {typeof antonym === 'string' ? antonym.charAt(0).toUpperCase() + antonym.slice(1) : antonym.english?.charAt(0).toUpperCase() + antonym.english?.slice(1)}
+                                              </span>
+                                              {(typeof antonym === 'object' && antonym.hindi) && (
+                                                <span className="text-xs text-gray-600 mt-1 text-center">
+                                                  {antonym.hindi}
+                                                </span>
+                                              )}
+                                            </div>
                                           ))}
                                         </div>
                                       </div>

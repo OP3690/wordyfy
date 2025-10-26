@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import { 
   Plus, Search, Volume2, CheckCircle, AlertCircle, Loader2,
-  BookOpen, Trophy, History, LogOut, CalendarDays, TrendingUp,
-  Award, Brain, ArrowRight, Star, Users, Target
+  BookOpen, Trophy, MessageSquare, LogOut, CalendarDays, TrendingUp,
+  Award, Brain, ArrowRight, Star, Users, Target, X, Save
 } from 'lucide-react';
 import Link from 'next/link';
 import { saveWord, getStoredWords } from '@/lib/storage';
@@ -23,6 +23,11 @@ export default function Dashboard() {
   const [showPopup, setShowPopup] = useState(false);
   const [currentWordData, setCurrentWordData] = useState<any>(null);
   
+  // Quick Add popup states
+  const [showQuickAddPopup, setShowQuickAddPopup] = useState(false);
+  const [quickAddText, setQuickAddText] = useState('');
+  const [quickAddLoading, setQuickAddLoading] = useState(false);
+  
   // Statistics states
   const [wordsAddedToday, setWordsAddedToday] = useState(0);
   const [wordsAddedLast7Days, setWordsAddedLast7Days] = useState(0);
@@ -33,12 +38,62 @@ export default function Dashboard() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isValidWord, setIsValidWord] = useState(true);
 
+  // Quiz stats states
+  const [quizStats, setQuizStats] = useState({
+    totalQuizzes: 0,
+    totalQuestions: 0,
+    correctAnswers: 0,
+    averageAccuracy: 0,
+    currentStreak: 0,
+    longestStreak: 0
+  });
+
+
   const clearMessage = () => {
     setMessage('');
     setShowPopup(false);
     if (messageTimeout) {
       clearTimeout(messageTimeout);
       setMessageTimeout(null);
+    }
+  };
+
+  const handleQuickAdd = async () => {
+    if (!quickAddText.trim() || !userId) return;
+
+    try {
+      setQuickAddLoading(true);
+      setMessage('');
+      
+      const response = await fetch('/api/sentences', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          text: quickAddText.trim(),
+          type: 'text', // Always save as 'text' for quick add
+          userId
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setMessage('✅ Text added successfully!');
+        setQuickAddText('');
+        setShowQuickAddPopup(false);
+        
+        // Clear success message after 3 seconds
+        setTimeout(() => setMessage(''), 3000);
+      } else {
+        setMessage(data.error || 'Failed to add text');
+      }
+    } catch (error) {
+      console.error('Error adding text:', error);
+      setMessage('Failed to add text');
+    } finally {
+      setQuickAddLoading(false);
     }
   };
 
@@ -92,146 +147,83 @@ export default function Dashboard() {
     'visable': ['visible']
   };
 
-  // Spelling suggestion functions
+  // Original working spelling suggestion function
   const getSpellingSuggestions = async (word: string) => {
-    console.log('Getting suggestions for:', word);
-    
     if (!word || word.length < 2) {
-      console.log('Word too short, clearing suggestions');
       setSuggestions([]);
       setShowSuggestions(false);
       setIsValidWord(true);
       return;
     }
 
-    const lowerWord = word.toLowerCase().trim();
-    console.log('Processing word:', lowerWord);
+    const lowerWord = word.toLowerCase();
     
-    // Check common misspellings first
+    // Check common misspellings first (instant response)
     if (commonMisspellings[lowerWord]) {
-      console.log('Found in common misspellings:', commonMisspellings[lowerWord]);
-      setSuggestions(commonMisspellings[lowerWord]);
+      const misspellingSuggestions = commonMisspellings[lowerWord];
+      setSuggestions(misspellingSuggestions);
       setShowSuggestions(true);
-      setIsValidWord(false);
+      
+      // Check if the current word matches any of the suggestions
+      const wordMatchesSuggestion = misspellingSuggestions.some((suggestion: string) => 
+        suggestion.toLowerCase() === lowerWord
+      );
+      
+      setIsValidWord(wordMatchesSuggestion);
       return;
     }
 
     try {
-      console.log('Fetching from Datamuse API...');
-      // Try spelling suggestions first
-      const response = await fetch(`https://api.datamuse.com/words?sp=${lowerWord}&max=5`);
-      console.log('API response status:', response.status);
+      // Try to get suggestions from Datamuse API
+      const suggestionsResponse = await fetch(`https://api.datamuse.com/sug?s=${encodeURIComponent(word)}&max=5`);
       
-      if (response.ok) {
-        const data = await response.json();
-        console.log('API response data:', data);
+      if (!suggestionsResponse.ok) {
+        throw new Error(`Datamuse API error: ${suggestionsResponse.status}`);
+      }
+      
+      const suggestionsData = await suggestionsResponse.json();
+      
+      if (suggestionsData && suggestionsData.length > 0) {
+        const suggestionWords = suggestionsData.map((item: any) => item.word);
         
-        if (data && data.length > 0) {
-          const suggestions = data.map((item: any) => item.word).filter((suggestion: string) => 
-            suggestion.toLowerCase() !== lowerWord && 
-            suggestion.length > 1
-          );
-          
-          console.log('Filtered suggestions:', suggestions);
-          
-          if (suggestions.length > 0) {
-            setSuggestions(suggestions);
+        setSuggestions(suggestionWords);
         setShowSuggestions(true);
-            setIsValidWord(false);
-            console.log('Suggestions set:', suggestions);
-          } else {
-            console.log('No valid suggestions found');
-        setSuggestions([]);
-        setShowSuggestions(false);
-            setIsValidWord(true);
-          }
-        } else {
-          console.log('No data from API, trying fuzzy matching');
-          const fuzzySuggestions = getFuzzySuggestions(lowerWord);
-          if (fuzzySuggestions.length > 0) {
-            console.log('Found fuzzy suggestions:', fuzzySuggestions);
-            setSuggestions(fuzzySuggestions);
-            setShowSuggestions(true);
-            setIsValidWord(false);
-          } else {
-            setSuggestions([]);
-            setShowSuggestions(false);
-            setIsValidWord(true);
-          }
-        }
-      } else {
-        console.log('API request failed:', response.status, 'trying fuzzy matching');
-        const fuzzySuggestions = getFuzzySuggestions(lowerWord);
-        if (fuzzySuggestions.length > 0) {
-          console.log('Found fuzzy suggestions:', fuzzySuggestions);
-          setSuggestions(fuzzySuggestions);
-          setShowSuggestions(true);
-          setIsValidWord(false);
-        } else {
-          setSuggestions([]);
-          setShowSuggestions(false);
-          setIsValidWord(true);
-        }
+        
+        // Check if the current word matches any of the suggestions
+        const wordMatchesSuggestion = suggestionWords.some((suggestion: string) => 
+          suggestion.toLowerCase() === lowerWord
+        );
+        
+        setIsValidWord(wordMatchesSuggestion);
+        return;
       }
-      
-    } catch (error) {
-      console.error('Error fetching suggestions:', error, 'trying fuzzy matching');
-      const fuzzySuggestions = getFuzzySuggestions(lowerWord);
-      if (fuzzySuggestions.length > 0) {
-        console.log('Found fuzzy suggestions:', fuzzySuggestions);
-        setSuggestions(fuzzySuggestions);
-        setShowSuggestions(true);
-        setIsValidWord(false);
-      } else {
-        setSuggestions([]);
-        setShowSuggestions(false);
-        setIsValidWord(true);
-      }
-    }
-    };
 
-  // Simple fuzzy matching for better suggestions
-  const getFuzzySuggestions = (word: string): string[] => {
-    const commonWords = [
-      'apple', 'iron', 'yellow', 'happy', 'water', 'book', 'house', 'car', 'tree', 'sun',
-      'moon', 'star', 'bird', 'fish', 'dog', 'cat', 'red', 'blue', 'green', 'black', 'white',
-      'big', 'small', 'good', 'bad', 'hot', 'cold', 'fast', 'slow', 'new', 'old', 'young',
-      'beautiful', 'ugly', 'strong', 'weak', 'rich', 'poor', 'happy', 'sad', 'angry', 'calm'
-    ];
-    
-    const suggestions: string[] = [];
-    const target = word.toLowerCase();
-    
-    for (const commonWord of commonWords) {
-      // Check if the word is similar (simple Levenshtein distance)
-      if (Math.abs(target.length - commonWord.length) <= 2) {
-        let differences = 0;
-        const minLength = Math.min(target.length, commonWord.length);
-        
-        for (let i = 0; i < minLength; i++) {
-          if (target[i] !== commonWord[i]) {
-            differences++;
-          }
-        }
-        
-        differences += Math.abs(target.length - commonWord.length);
-        
-        if (differences <= 2 && differences > 0) {
-          suggestions.push(commonWord);
-        }
+      // If no suggestions from Datamuse, check dictionary
+      const dictResponse = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`);
+      const isValid = dictResponse.ok;
+      setIsValidWord(isValid);
+
+      if (isValid) {
+        setSuggestions([]);
+        setShowSuggestions(false);
+      } else {
+        setSuggestions([]);
+        setShowSuggestions(false);
       }
+    } catch (error) {
+      console.error('Error checking spelling:', error);
+      setIsValidWord(true);
+      setSuggestions([]);
+      setShowSuggestions(false);
     }
-    
-    return suggestions.slice(0, 3);
   };
 
-  const handleSuggestionClick = (suggestion: string) => {
-    console.log('Suggestion clicked:', suggestion);
+
+  const selectSuggestion = (suggestion: string) => {
     setWord(suggestion);
-    setShowSuggestions(false);
+      setSuggestions([]);
+      setShowSuggestions(false);
     setIsValidWord(true);
-    // Clear any existing message
-    setMessage('');
   };
 
   const playPronunciation = (word: string, isHindi: boolean = false) => {
@@ -280,6 +272,7 @@ export default function Dashboard() {
         setUser(userData);
         setUserId(storedUserId);
         loadUserWords(storedUserId);
+        loadQuizStats(storedUserId);
       } catch (error) {
         console.error('Error parsing user data:', error);
         localStorage.removeItem('user');
@@ -291,6 +284,46 @@ export default function Dashboard() {
     }
     
     setMessage('');
+  }, []);
+
+  // Refresh quiz stats when returning from quiz or page becomes visible
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        const storedUserId = localStorage.getItem('userId');
+        if (storedUserId) {
+          console.log('🔄 Page became visible, refreshing quiz stats...');
+          loadQuizStats(storedUserId);
+        }
+      }
+    };
+
+    const handleFocus = () => {
+      const storedUserId = localStorage.getItem('userId');
+      if (storedUserId) {
+        console.log('🔄 Window focused, refreshing quiz stats...');
+        loadQuizStats(storedUserId);
+      }
+    };
+
+    const handleQuizStatsUpdate = () => {
+      const storedUserId = localStorage.getItem('userId');
+      if (storedUserId) {
+        console.log('🔄 Quiz stats updated event received, refreshing...');
+        loadQuizStats(storedUserId);
+      }
+    };
+
+    // Listen for visibility change, focus, and custom quiz stats update events
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+    window.addEventListener('quizStatsUpdated', handleQuizStatsUpdate);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+      window.removeEventListener('quizStatsUpdated', handleQuizStatsUpdate);
+    };
   }, []);
 
   const loadUserWords = async (userId: string) => {
@@ -317,6 +350,26 @@ export default function Dashboard() {
     }
   };
 
+  const loadQuizStats = async (userId: string) => {
+    try {
+      const response = await fetch(`/api/quiz-stats?userId=${userId}`);
+      const data = await response.json();
+      
+      if (response.ok && data.stats) {
+        setQuizStats({
+          totalQuizzes: data.stats.totalQuizzes || 0,
+          totalQuestions: data.stats.totalQuestions || 0,
+          correctAnswers: data.stats.correctAnswers || 0,
+          averageAccuracy: data.stats.averageAccuracy || 0,
+          currentStreak: data.stats.currentStreak || 0,
+          longestStreak: data.stats.longestStreak || 0
+        });
+      }
+    } catch (error) {
+      console.error('Error loading quiz stats:', error);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -340,6 +393,22 @@ export default function Dashboard() {
     
     if (existingWord) {
       setMessageWithTimeout(`ℹ️ "${trimmedWord}" already in your vault! Hindi: ${existingWord.translation || existingWord.hindiTranslation || 'N/A'}`);
+      
+      // Show word details for already-added words
+      setCurrentWordData({
+        word: existingWord.englishWord,
+        translation: existingWord.translation || existingWord.hindiTranslation || 'N/A',
+        definition: (existingWord as any).definition || 'No definition available',
+        example: (existingWord as any).example || 'No example available',
+        synonyms: (existingWord as any).synonyms || [],
+        antonyms: (existingWord as any).antonyms || [],
+        pronunciation: existingWord.pronunciation || '',
+        partOfSpeech: existingWord.partOfSpeech || '',
+        audioUrl: existingWord.audioUrl || '',
+        phonetics: existingWord.phonetics || [],
+        meanings: existingWord.meanings || []
+      });
+      
       setWord('');
       setShowSuggestions(false);
       setIsValidWord(true);
@@ -397,14 +466,26 @@ export default function Dashboard() {
     window.location.href = '/login';
   };
 
-  // Debounced suggestion fetching
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      getSpellingSuggestions(word);
-    }, 300);
+  // Original working word change handler
+  const handleWordChange = (value: string, event?: React.ChangeEvent<HTMLInputElement>) => {
+    setWord(value);
 
-    return () => clearTimeout(timeoutId);
-  }, [word]);
+    // Clear suggestions immediately when typing
+    setSuggestions([]);
+    setShowSuggestions(false);
+    
+    // Clear current word data when typing new word
+    setCurrentWordData(null);
+
+    // Debounce the spelling check
+    if (value.length >= 2) {
+      setTimeout(() => {
+        getSpellingSuggestions(value);
+      }, 100); // Reduced timeout for faster response
+      } else {
+      setIsValidWord(true);
+    }
+  };
 
   // Close suggestions when clicking outside
   useEffect(() => {
@@ -422,12 +503,12 @@ export default function Dashboard() {
   }, [showSuggestions]);
 
   if (!mounted) {
-    return (
+  return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
           <div className="w-12 h-12 bg-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-4 animate-pulse">
             <Brain className="h-6 w-6 text-white" />
-          </div>
+      </div>
           <p className="text-gray-600 text-sm">Loading...</p>
         </div>
       </div>
@@ -443,7 +524,7 @@ export default function Dashboard() {
             <div>
               <h1 className="text-lg font-semibold text-gray-900">WordyFy</h1>
               <p className="text-xs text-gray-500">Learn English Words</p>
-      </div>
+              </div>
               <button
                 onClick={handleLogout}
               className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
@@ -456,20 +537,41 @@ export default function Dashboard() {
 
       {/* Main Content */}
       <main className="pb-20">
-        {/* Quick Stats - Minimal */}
+        {/* Quick Stats - Enhanced with Quiz Stats */}
         <div className="px-4 py-4">
-          <div className="grid grid-cols-3 gap-3">
+          {/* Word Stats */}
+          <div className="grid grid-cols-3 gap-3 mb-4">
             <div className="bg-white rounded-xl p-3 text-center">
               <div className="text-lg font-semibold text-blue-600">{wordsAddedToday}</div>
-              <div className="text-xs text-gray-500">Today</div>
-          </div>
+              <div className="text-xs text-gray-500">Words Today</div>
+            </div>
             <div className="bg-white rounded-xl p-3 text-center">
               <div className="text-lg font-semibold text-green-600">{wordsAddedLast7Days}</div>
               <div className="text-xs text-gray-500">This Week</div>
-              </div>
+            </div>
             <div className="bg-white rounded-xl p-3 text-center">
               <div className="text-lg font-semibold text-purple-600">{storedWords.length}</div>
-              <div className="text-xs text-gray-500">Total</div>
+              <div className="text-xs text-gray-500">Total Words</div>
+            </div>
+          </div>
+
+          {/* Quiz Stats */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="bg-gradient-to-r from-orange-50 to-red-50 rounded-xl p-3 text-center border border-orange-200">
+              <div className="text-lg font-semibold text-orange-600">{quizStats.totalQuizzes}</div>
+              <div className="text-xs text-gray-500">Quizzes Taken</div>
+              </div>
+            <div className="bg-gradient-to-r from-emerald-50 to-green-50 rounded-xl p-3 text-center border border-emerald-200">
+              <div className="text-lg font-semibold text-emerald-600">{Math.round(quizStats.averageAccuracy)}%</div>
+              <div className="text-xs text-gray-500">Accuracy</div>
+            </div>
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-3 text-center border border-blue-200">
+              <div className="text-lg font-semibold text-blue-600">{quizStats.currentStreak}</div>
+              <div className="text-xs text-gray-500">Current Streak</div>
+            </div>
+            <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-3 text-center border border-purple-200">
+              <div className="text-lg font-semibold text-purple-600">{quizStats.longestStreak}</div>
+              <div className="text-xs text-gray-500">Best Streak</div>
             </div>
           </div>
             </div>
@@ -488,10 +590,18 @@ export default function Dashboard() {
                     type="text"
                     value={word}
                     onChange={(e) => {
-                        setWord(e.target.value);
+                      handleWordChange(e.target.value, e);
+                      // Clear message when user starts typing
+                      if (message) {
                         setMessage('');
+                      }
+                    }}
+                    onFocus={() => {
+                      // Clear message when user focuses on input
+                      if (message) {
+                          setMessage('');
+                        }
                       }}
-                      onFocus={() => setMessage('')}
                       placeholder="Enter a word..."
                       className={`w-full pl-10 pr-4 py-2.5 bg-gray-50 border-0 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all ${
                         !isValidWord && showSuggestions ? 'ring-2 ring-red-500' : ''
@@ -519,6 +629,7 @@ export default function Dashboard() {
               </button>
             </div>
             
+                
                 {/* Suggestions Dropdown - Enhanced */}
                 {showSuggestions && suggestions.length > 0 && (
                   <div className="suggestions-container absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-200 z-50 max-h-40 overflow-y-auto animate-slideInDown">
@@ -530,7 +641,7 @@ export default function Dashboard() {
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            handleSuggestionClick(suggestion);
+                            selectSuggestion(suggestion);
                           }}
                           className="w-full text-left px-3 py-2.5 hover:bg-blue-50 rounded-lg transition-all duration-150 text-sm font-medium text-gray-800 hover:text-blue-700 flex items-center space-x-2 group"
                         >
@@ -649,9 +760,16 @@ export default function Dashboard() {
                             </div>
                             <div className="flex flex-wrap gap-2">
                               {meaning.synonyms.map((synonym: any, synIndex: number) => (
-                                <span key={synIndex} className="px-3 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full border border-green-200 hover:bg-green-200 transition-colors">
-                                  {typeof synonym === 'string' ? synonym.charAt(0).toUpperCase() + synonym.slice(1) : synonym.english?.charAt(0).toUpperCase() + synonym.english?.slice(1)}
-                                </span>
+                                <div key={synIndex} className="flex flex-col items-center">
+                                  <span className="px-3 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full border border-green-200 hover:bg-green-200 transition-colors">
+                                    {typeof synonym === 'string' ? synonym.charAt(0).toUpperCase() + synonym.slice(1) : synonym.english?.charAt(0).toUpperCase() + synonym.english?.slice(1)}
+                                  </span>
+                                  {(typeof synonym === 'object' && synonym.hindi) && (
+                                    <span className="text-xs text-gray-600 mt-1 text-center">
+                                      {synonym.hindi}
+                                    </span>
+                                  )}
+                          </div>
                         ))}
                       </div>
                     </div>
@@ -662,12 +780,19 @@ export default function Dashboard() {
                             <div className="flex items-center space-x-2 mb-2">
                               <div className="w-2 h-2 bg-red-500 rounded-full"></div>
                               <h6 className="text-sm font-semibold text-red-700">Antonyms</h6>
-                            </div>
+                        </div>
                             <div className="flex flex-wrap gap-2">
                               {meaning.antonyms.map((antonym: any, antIndex: number) => (
-                                <span key={antIndex} className="px-3 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full border border-red-200 hover:bg-red-200 transition-colors">
-                                  {typeof antonym === 'string' ? antonym.charAt(0).toUpperCase() + antonym.slice(1) : antonym.english?.charAt(0).toUpperCase() + antonym.english?.slice(1)}
-                          </span>
+                                <div key={antIndex} className="flex flex-col items-center">
+                                  <span className="px-3 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full border border-red-200 hover:bg-red-200 transition-colors">
+                                    {typeof antonym === 'string' ? antonym.charAt(0).toUpperCase() + antonym.slice(1) : antonym.english?.charAt(0).toUpperCase() + antonym.english?.slice(1)}
+                                  </span>
+                                  {(typeof antonym === 'object' && antonym.hindi) && (
+                                    <span className="text-xs text-gray-600 mt-1 text-center">
+                                      {antonym.hindi}
+                                    </span>
+                                  )}
+                                </div>
                               ))}
                       </div>
                     </div>
@@ -690,38 +815,114 @@ export default function Dashboard() {
                 >
               <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-2">
                 <BookOpen className="h-5 w-5 text-blue-600" />
-              </div>
+            </div>
               <div className="text-sm font-medium text-gray-900">My Words</div>
               <div className="text-xs text-gray-500">{storedWords.length}</div>
             </Link>
             
                 <Link
-              href="/quiz"
+                  href="/quiz"
               className="bg-white rounded-xl p-4 text-center hover:bg-gray-50 transition-colors"
                 >
               <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center mx-auto mb-2">
                 <Trophy className="h-5 w-5 text-green-600" />
               </div>
               <div className="text-sm font-medium text-gray-900">Quiz</div>
-              <div className="text-xs text-gray-500">Test</div>
+              <div className="text-xs text-gray-500">{storedWords.length >= 5 ? 'Ready' : 'Need 5+ words'}</div>
             </Link>
             
                 <Link
-              href="/history"
+              href="/sentences"
               className="bg-white rounded-xl p-4 text-center hover:bg-gray-50 transition-colors"
             >
               <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center mx-auto mb-2">
-                <History className="h-5 w-5 text-purple-600" />
+                <MessageSquare className="h-5 w-5 text-purple-600" />
               </div>
-              <div className="text-sm font-medium text-gray-900">History</div>
-              <div className="text-xs text-gray-500">Progress</div>
+              <div className="text-sm font-medium text-gray-900">Sentences</div>
+              <div className="text-xs text-gray-500">Quotes & Text</div>
                 </Link>
               </div>
-            </div>
+                </div>
       </main>
 
       {/* Install Prompt */}
       <InstallPrompt />
+
+      {/* Floating Action Button for Quick Add */}
+      <button
+        onClick={() => setShowQuickAddPopup(true)}
+        className="fixed bottom-6 right-6 z-50 bg-gradient-to-r from-purple-600 to-pink-600 text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 group"
+      >
+        <Plus className="h-6 w-6" />
+        <div className="absolute right-full mr-3 top-1/2 transform -translate-y-1/2 bg-gray-900 text-white text-sm px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+          Quick Add
+        </div>
+      </button>
+
+      {/* Quick Add Popup Modal */}
+      {showQuickAddPopup && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-xl">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Quick Add Text</h3>
+              <button
+                onClick={() => {
+                  setShowQuickAddPopup(false);
+                  setQuickAddText('');
+                }}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Text
+                </label>
+                <textarea
+                  value={quickAddText}
+                  onChange={(e) => setQuickAddText(e.target.value)}
+                  placeholder="Type anything here..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  rows={4}
+                  autoFocus
+                />
+              </div>
+              
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={() => {
+                    setShowQuickAddPopup(false);
+                    setQuickAddText('');
+                  }}
+                  className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleQuickAdd}
+                  disabled={quickAddLoading || !quickAddText.trim()}
+                  className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all font-semibold disabled:opacity-50 flex items-center space-x-2"
+                >
+                  {quickAddLoading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span>Saving...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4" />
+                      <span>Save</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

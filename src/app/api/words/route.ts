@@ -256,9 +256,12 @@ export async function POST(request: NextRequest) {
     const db = await getDb();
     const { englishWord, userId, fromLanguage, toLanguage } = await request.json();
     
-    if (!englishWord || !userId) {
-      return NextResponse.json({ error: 'English word and userId are required' }, { status: 400 });
+    if (!englishWord) {
+      return NextResponse.json({ error: 'English word is required' }, { status: 400 });
     }
+
+    // Handle demo requests (no userId provided)
+    const isDemoRequest = !userId || userId === 'demo-user';
 
     // Clean and validate the word
     const cleanWord = englishWord.trim().replace(/\s+/g, ' ');
@@ -306,6 +309,52 @@ export async function POST(request: NextRequest) {
       console.log('🔄 Auto-translating examples for word:', cleanWord);
       translatedMeanings = await translateExamples(translatedMeanings);
       console.log('✅ Auto-translation completed for word:', cleanWord);
+    }
+
+    // For demo requests, skip database operations and return word details
+    if (isDemoRequest) {
+      const dictionaryData = await getWordDetails(cleanWord);
+      const enhancedData = dictionaryData ? extractEnhancedWordData(dictionaryData, wordDetails.hindiTranslation || '') : null;
+      
+      // Auto-translate examples for demo
+      let translatedMeanings = enhancedData?.meanings;
+      if (translatedMeanings && translatedMeanings.length > 0) {
+        console.log('🔄 Auto-translating examples for demo word:', cleanWord);
+        translatedMeanings = await translateExamples(translatedMeanings);
+        console.log('✅ Auto-translation completed for demo word:', cleanWord);
+      }
+
+      const demoWord = {
+        englishWord: cleanWord,
+        translation: wordDetails.hindiTranslation || '',
+        definition: enhancedData?.meanings?.[0]?.definitions?.[0]?.definition || `The word "${cleanWord}" means ${wordDetails.hindiTranslation} in Hindi.`,
+        example: enhancedData?.meanings?.[0]?.definitions?.[0]?.example || `Example: The ${cleanWord} option is now available.`,
+        synonyms: enhancedData?.meanings?.[0]?.synonyms || [],
+        antonyms: enhancedData?.meanings?.[0]?.antonyms || [],
+        pronunciation: enhancedData?.phonetics?.[0]?.text || '',
+        partOfSpeech: enhancedData?.meanings?.[0]?.partOfSpeech || 'noun',
+        audioUrl: enhancedData?.audioUrl,
+        meanings: translatedMeanings || [{
+          partOfSpeech: 'noun',
+          definitions: [{
+            definition: `The word "${cleanWord}" means ${wordDetails.hindiTranslation} in Hindi.`,
+            example: `Example: The ${cleanWord} option is now available.`,
+            synonyms: [],
+            antonyms: []
+          }]
+        }],
+        phonetics: enhancedData?.phonetics || [],
+        // Translation metadata
+        translationSource: wordDetails.translationSource,
+        alternativeTranslations: wordDetails.alternativeTranslations,
+        hindiTranslation: wordDetails.hindiTranslation || '',
+      };
+
+      return NextResponse.json({ 
+        success: true, 
+        message: `Word details loaded for "${cleanWord}"`,
+        word: demoWord
+      });
     }
 
     // Check if word already exists for this user

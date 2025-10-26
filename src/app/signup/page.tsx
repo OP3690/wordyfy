@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { Zap, ArrowLeft, ArrowRight, Globe, Languages, Sparkles } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Zap, ArrowLeft, ArrowRight, Globe, Languages, Sparkles, Eye, EyeOff, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
 
 const languages = [
@@ -32,6 +32,27 @@ export default function SignUpPage() {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [demoWord, setDemoWord] = useState<{word: string, lang: string} | null>(null);
+
+  // Handle URL parameters for demo word
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const word = urlParams.get('word');
+      const lang = urlParams.get('lang');
+      const source = urlParams.get('source');
+      
+      if (word && lang && source === 'demo') {
+        setDemoWord({ word, lang });
+        setFormData(prev => ({
+          ...prev,
+          toLanguage: lang
+        }));
+      }
+    }
+  }, []);
 
   const validateStep1 = () => {
     const newErrors: Record<string, string> = {};
@@ -56,46 +77,73 @@ export default function SignUpPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleStep1Next = () => {
-    if (validateStep1()) {
+  const validateStep2 = () => {
+    const newErrors: Record<string, string> = {};
+
+    if (!formData.fromLanguage) newErrors.fromLanguage = 'Please select your native language';
+    if (!formData.toLanguage) newErrors.toLanguage = 'Please select your target language';
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleNext = () => {
+    if (currentStep === 1 && validateStep1()) {
       setCurrentStep(2);
+    } else if (currentStep === 2 && validateStep2()) {
+      handleSubmit();
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+  const handleBack = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
 
+  const handleSubmit = async () => {
+    setLoading(true);
     try {
       const response = await fetch('/api/users', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          name: formData.name,
-          mobile: formData.mobile,
-          email: formData.email,
-          password: formData.password,
-          fromLanguage: formData.fromLanguage,
-          toLanguage: formData.toLanguage
-        }),
+        body: JSON.stringify(formData),
       });
 
-      const result = await response.json();
+      const data = await response.json();
 
-      if (result.success) {
-        // Store user data in localStorage for session management
-        localStorage.setItem('user', JSON.stringify(result.user));
-        localStorage.setItem('userId', result.userId);
+      if (response.ok) {
+        localStorage.setItem('user', JSON.stringify(data.user));
+        localStorage.setItem('userId', data.user._id);
         
-        // Redirect to dashboard after successful signup
+        // If user came from demo, add the word to their vault
+        if (demoWord) {
+          try {
+            await fetch('/api/words', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                word: demoWord.word,
+                fromLanguage: 'en',
+                toLanguage: demoWord.lang,
+                userId: data.user._id
+              }),
+            });
+          } catch (wordError) {
+            console.error('Error adding demo word:', wordError);
+            // Don't fail the signup if word addition fails
+          }
+        }
+        
         window.location.href = '/dashboard';
       } else {
-        setErrors({ submit: result.error || 'Failed to create account' });
+        setErrors({ submit: data.error || 'Registration failed' });
       }
     } catch (error) {
-      console.error('Signup error:', error);
       setErrors({ submit: 'Network error. Please try again.' });
     } finally {
       setLoading(false);
@@ -110,221 +158,277 @@ export default function SignUpPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      {/* Animated Background */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-100/40 rounded-full mix-blend-multiply filter blur-xl opacity-60 animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-indigo-100/40 rounded-full mix-blend-multiply filter blur-xl opacity-60 animate-pulse"></div>
-        <div className="absolute top-40 left-40 w-80 h-80 bg-cyan-100/40 rounded-full mix-blend-multiply filter blur-xl opacity-60 animate-pulse"></div>
-      </div>
-
-      {/* Header */}
-      <header className="relative bg-white/80 backdrop-blur-md border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <Link href="/" className="flex items-center space-x-3">
-              <div className="p-3 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl shadow-lg">
-                <Zap className="h-8 w-8 text-white" />
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+      {/* Mobile Header */}
+      <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-sm">
+        <div className="max-w-md mx-auto px-4">
+          <div className="flex items-center py-4">
+            <Link href="/" className="flex items-center space-x-2">
+              <ArrowLeft className="h-5 w-5 text-gray-600" />
+              <span className="text-gray-600 font-medium">Back</span>
+            </Link>
+            <div className="flex-1 text-center">
+              <div className="flex items-center justify-center space-x-2">
+                <div className="p-1.5 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg">
+                  <Zap className="h-4 w-4 text-white" />
+                </div>
+                <span className="text-lg font-bold text-gray-900">WordyFy</span>
               </div>
-              <h1 className="text-3xl font-bold text-gray-900">Wordyfy</h1>
-            </Link>
-            <Link
-              href="/login"
-              className="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors font-semibold"
-            >
-              Login
-            </Link>
+            </div>
+            <div className="w-16"></div>
           </div>
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="relative max-w-lg mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="bg-white/90 backdrop-blur-md rounded-3xl p-6 border border-gray-200 shadow-2xl">
-          {/* Progress Indicator */}
-          <div className="flex items-center justify-center mb-6">
-            <div className="flex items-center space-x-4">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
-                currentStep >= 1 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'
-              }`}>
-                1
+      {/* Demo Word Banner */}
+      {demoWord && (
+        <div className="max-w-md mx-auto px-4 py-4">
+          <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4 border border-purple-200 mb-4">
+            <div className="text-center">
+              <div className="flex items-center justify-center space-x-2 mb-2">
+                <CheckCircle className="h-4 w-4 text-green-500" />
+                <span className="text-sm font-semibold text-gray-700">Saving Your Word</span>
               </div>
-              <div className={`w-16 h-1 ${currentStep >= 2 ? 'bg-blue-600' : 'bg-gray-200'}`}></div>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
-                currentStep >= 2 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'
-              }`}>
-                2
-              </div>
+              <p className="text-xs text-gray-600 mb-2">
+                You're about to save "<span className="font-semibold text-purple-600">{demoWord.word}</span>" to your vault
+              </p>
+              <p className="text-xs text-gray-500">
+                Create your account to continue and start building your vocabulary
+              </p>
             </div>
           </div>
+        </div>
+      )}
 
-          <div className="text-center mb-6">
-            <div className="inline-flex items-center justify-center w-14 h-14 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl mb-3 shadow-lg">
-              <Sparkles className="h-7 w-7 text-white" />
-            </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Create Your Account</h2>
-            <p className="text-gray-600 text-sm">
-              {currentStep === 1 ? 'Step 1: Personal Information' : 'Step 2: Language Preferences'}
-            </p>
+      {/* Progress Indicator */}
+      <div className="max-w-md mx-auto px-4 py-4">
+        <div className="flex items-center justify-center space-x-4 mb-6">
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
+            currentStep >= 1 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'
+          }`}>
+            1
           </div>
+          <div className={`flex-1 h-1 rounded-full ${
+            currentStep >= 2 ? 'bg-blue-600' : 'bg-gray-200'
+          }`}></div>
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
+            currentStep >= 2 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'
+          }`}>
+            2
+          </div>
+        </div>
+      </div>
 
-          {currentStep === 1 ? (
-            <form onSubmit={(e) => { e.preventDefault(); handleStep1Next(); }} className="space-y-4">
+      {/* Form Content */}
+      <main className="max-w-md mx-auto px-4 pb-8">
+        {currentStep === 1 && (
+          <div className="space-y-6">
+            <div className="text-center mb-8">
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">Create Your Account</h1>
+              <p className="text-gray-600">Let's get you started on your learning journey</p>
+            </div>
+
+            <div className="space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Full Name</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) => handleInputChange('name', e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-300 rounded-xl focus:ring-4 focus:ring-blue-500/50 focus:border-blue-500 transition-all text-gray-900 placeholder-gray-500"
+                  className={`w-full px-4 py-3 bg-white border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all ${
+                    errors.name ? 'border-red-300' : 'border-gray-200'
+                  }`}
                   placeholder="Enter your full name"
-                  required
                 />
-                {errors.name && <p className="text-red-600 text-xs mt-1">{errors.name}</p>}
+                {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Mobile Number</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Mobile Number</label>
                 <input
                   type="tel"
                   value={formData.mobile}
                   onChange={(e) => handleInputChange('mobile', e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-300 rounded-xl focus:ring-4 focus:ring-blue-500/50 focus:border-blue-500 transition-all text-gray-900 placeholder-gray-500"
-                  placeholder="Enter your mobile number"
-                  required
+                  className={`w-full px-4 py-3 bg-white border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all ${
+                    errors.mobile ? 'border-red-300' : 'border-gray-200'
+                  }`}
+                  placeholder="+1 234 567 8900"
                 />
-                {errors.mobile && <p className="text-red-600 text-xs mt-1">{errors.mobile}</p>}
+                {errors.mobile && <p className="text-red-500 text-sm mt-1">{errors.mobile}</p>}
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Email Address</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
                 <input
                   type="email"
                   value={formData.email}
                   onChange={(e) => handleInputChange('email', e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-300 rounded-xl focus:ring-4 focus:ring-blue-500/50 focus:border-blue-500 transition-all text-gray-900 placeholder-gray-500"
-                  placeholder="Enter your email address"
-                  required
+                  className={`w-full px-4 py-3 bg-white border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all ${
+                    errors.email ? 'border-red-300' : 'border-gray-200'
+                  }`}
+                  placeholder="your@email.com"
                 />
-                {errors.email && <p className="text-red-600 text-xs mt-1">{errors.email}</p>}
+                {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Password</label>
-                <input
-                  type="password"
-                  value={formData.password}
-                  onChange={(e) => handleInputChange('password', e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-300 rounded-xl focus:ring-4 focus:ring-blue-500/50 focus:border-blue-500 transition-all text-gray-900 placeholder-gray-500"
-                  placeholder="Create a strong password"
-                  required
-                />
-                {errors.password && <p className="text-red-600 text-xs mt-1">{errors.password}</p>}
+                <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={formData.password}
+                    onChange={(e) => handleInputChange('password', e.target.value)}
+                    className={`w-full px-4 py-3 pr-12 bg-white border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all ${
+                      errors.password ? 'border-red-300' : 'border-gray-200'
+                    }`}
+                    placeholder="Create a strong password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  </button>
+                </div>
+                {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Confirm Password</label>
-                <input
-                  type="password"
-                  value={formData.confirmPassword}
-                  onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-300 rounded-xl focus:ring-4 focus:ring-blue-500/50 focus:border-blue-500 transition-all text-gray-900 placeholder-gray-500"
-                  placeholder="Confirm your password"
-                  required
-                />
-                {errors.confirmPassword && <p className="text-red-600 text-xs mt-1">{errors.confirmPassword}</p>}
+                <label className="block text-sm font-medium text-gray-700 mb-2">Confirm Password</label>
+                <div className="relative">
+                  <input
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    value={formData.confirmPassword}
+                    onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
+                    className={`w-full px-4 py-3 pr-12 bg-white border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all ${
+                      errors.confirmPassword ? 'border-red-300' : 'border-gray-200'
+                    }`}
+                    placeholder="Confirm your password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  </button>
+                </div>
+                {errors.confirmPassword && <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>}
               </div>
+            </div>
+
+            {errors.submit && (
+              <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+                <p className="text-red-600 text-sm">{errors.submit}</p>
+              </div>
+            )}
+
+            <button
+              onClick={handleNext}
+              className="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all font-semibold shadow-lg flex items-center justify-center space-x-2"
+            >
+              <span>Continue</span>
+              <ArrowRight className="h-4 w-4" />
+            </button>
+          </div>
+        )}
+
+        {currentStep === 2 && (
+          <div className="space-y-6">
+            <div className="text-center mb-8">
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">Language Preferences</h1>
+              <p className="text-gray-600">Help us personalize your learning experience</p>
+            </div>
+
+            <div className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">Your Native Language</label>
+                <div className="grid grid-cols-2 gap-3">
+                  {languages.map((lang) => (
+                    <button
+                      key={lang.code}
+                      onClick={() => handleInputChange('fromLanguage', lang.code)}
+                      className={`p-3 rounded-xl border-2 transition-all ${
+                        formData.fromLanguage === lang.code
+                          ? 'border-blue-500 bg-blue-50'
+                          : 'border-gray-200 bg-white hover:border-gray-300'
+                      }`}
+                    >
+                      <div className="text-center">
+                        <div className="text-2xl mb-1">{lang.flag}</div>
+                        <div className="text-sm font-medium text-gray-900">{lang.name}</div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+                {errors.fromLanguage && <p className="text-red-500 text-sm mt-2">{errors.fromLanguage}</p>}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">Target Language (What you want to learn)</label>
+                <div className="grid grid-cols-2 gap-3">
+                  {languages.map((lang) => (
+                    <button
+                      key={lang.code}
+                      onClick={() => handleInputChange('toLanguage', lang.code)}
+                      className={`p-3 rounded-xl border-2 transition-all ${
+                        formData.toLanguage === lang.code
+                          ? 'border-green-500 bg-green-50'
+                          : 'border-gray-200 bg-white hover:border-gray-300'
+                      }`}
+                    >
+                      <div className="text-center">
+                        <div className="text-2xl mb-1">{lang.flag}</div>
+                        <div className="text-sm font-medium text-gray-900">{lang.name}</div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+                {errors.toLanguage && <p className="text-red-500 text-sm mt-2">{errors.toLanguage}</p>}
+              </div>
+            </div>
+
+            {errors.submit && (
+              <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+                <p className="text-red-600 text-sm">{errors.submit}</p>
+              </div>
+            )}
+
+            <div className="space-y-3">
+              <button
+                onClick={handleSubmit}
+                disabled={loading}
+                className="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all font-semibold shadow-lg flex items-center justify-center space-x-2 disabled:opacity-50"
+              >
+                {loading ? (
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                ) : (
+                  <>
+                    <span>Create Account</span>
+                    <CheckCircle className="h-4 w-4" />
+                  </>
+                )}
+              </button>
 
               <button
-                type="submit"
-                className="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-2xl hover:from-blue-700 hover:to-indigo-700 transition-all flex items-center justify-center space-x-3 transform hover:scale-105 shadow-xl hover:shadow-2xl text-lg"
+                onClick={handleBack}
+                className="w-full py-3 text-gray-600 hover:text-gray-800 transition-colors font-medium"
               >
-                <span>Next Step</span>
-                <ArrowRight className="h-6 w-6" />
+                Back to Details
               </button>
-            </form>
-          ) : (
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  <Globe className="inline h-4 w-4 mr-2 text-blue-600" />
-                  From Which language?
-                </label>
-                <select
-                  value={formData.fromLanguage}
-                  onChange={(e) => handleInputChange('fromLanguage', e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-300 rounded-xl focus:ring-4 focus:ring-blue-500/50 focus:border-blue-500 transition-all text-gray-900"
-                >
-                  {languages.map(lang => (
-                    <option key={lang.code} value={lang.code} className="bg-white text-gray-900">
-                      {lang.flag} {lang.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  <Languages className="inline h-4 w-4 mr-2 text-blue-600" />
-                  To Which language?
-                </label>
-                <select
-                  value={formData.toLanguage}
-                  onChange={(e) => handleInputChange('toLanguage', e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-300 rounded-xl focus:ring-4 focus:ring-blue-500/50 focus:border-blue-500 transition-all text-gray-900"
-                >
-                  {languages.map(lang => (
-                    <option key={lang.code} value={lang.code} className="bg-white text-gray-900">
-                      {lang.flag} {lang.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {errors.submit && (
-                <div className="bg-red-50 border border-red-200 rounded-xl p-4">
-                  <p className="text-red-600 text-sm">{errors.submit}</p>
-                </div>
-              )}
-
-              <div className="flex space-x-4">
-                <button
-                  type="button"
-                  onClick={() => setCurrentStep(1)}
-                  className="flex-1 py-4 border-2 border-gray-300 text-gray-700 font-bold rounded-2xl hover:bg-gray-100 transition-all flex items-center justify-center space-x-3 shadow-lg hover:shadow-xl text-lg"
-                >
-                  <ArrowLeft className="h-6 w-6" />
-                  <span>Back</span>
-                </button>
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="flex-1 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-2xl hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 transition-all flex items-center justify-center space-x-3 transform hover:scale-105 shadow-xl hover:shadow-2xl text-lg"
-                >
-                  {loading ? (
-                    <>
-                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
-                      <span>Creating Account...</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>Create Account</span>
-                      <ArrowRight className="h-6 w-6" />
-                    </>
-                  )}
-                </button>
-              </div>
-            </form>
-          )}
-
-          <div className="mt-4 text-center">
-            <p className="text-gray-700">
-              Already have an account?{' '}
-              <Link href="/login" className="text-blue-600 hover:text-blue-700 font-bold transition-colors">
-                Sign in here
-              </Link>
-            </p>
+            </div>
           </div>
+        )}
+
+        {/* Login Link */}
+        <div className="text-center mt-8">
+          <p className="text-gray-600 text-sm">
+            Already have an account?{' '}
+            <Link href="/login" className="text-blue-600 hover:text-blue-700 font-semibold">
+              Sign in here
+            </Link>
+          </p>
         </div>
       </main>
     </div>
