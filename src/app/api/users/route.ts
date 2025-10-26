@@ -7,7 +7,7 @@ export async function POST(request: NextRequest) {
     const db = await getDb();
     const userData: Omit<User, '_id' | 'createdAt' | 'updatedAt' | 'xp' | 'level' | 'streak' | 'lastActive' | 'achievements'> = await request.json();
     
-    const user: User = {
+    const user: Omit<User, '_id'> = {
       ...userData,
       createdAt: new Date(),
       updatedAt: new Date(),
