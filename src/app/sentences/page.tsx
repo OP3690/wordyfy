@@ -376,7 +376,7 @@ export default function SentencesPage() {
         <button
           key={1}
           onClick={() => handlePageChange(1)}
-          className="px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg"
+          className="px-4 py-2.5 text-sm font-semibold text-gray-600 bg-white/70 backdrop-blur-sm border border-gray-200 rounded-xl hover:bg-white hover:shadow-lg transition-all duration-200 hover:scale-105 transform"
         >
           1
         </button>
@@ -392,10 +392,10 @@ export default function SentencesPage() {
         <button
           key={i}
           onClick={() => handlePageChange(i)}
-          className={`px-3 py-2 text-sm font-medium rounded-lg ${
+          className={`px-4 py-2.5 text-sm font-semibold rounded-xl transition-all duration-200 hover:scale-105 transform ${
             i === currentPage
-              ? 'bg-purple-600 text-white'
-              : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+              ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
+              : 'text-gray-600 bg-white/70 backdrop-blur-sm border border-gray-200 hover:bg-white hover:shadow-lg'
           }`}
         >
           {i}
@@ -412,7 +412,7 @@ export default function SentencesPage() {
         <button
           key={totalPages}
           onClick={() => handlePageChange(totalPages)}
-          className="px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg"
+          className="px-4 py-2.5 text-sm font-semibold text-gray-600 bg-white/70 backdrop-blur-sm border border-gray-200 rounded-xl hover:bg-white hover:shadow-lg transition-all duration-200 hover:scale-105 transform"
         >
           {totalPages}
         </button>
@@ -420,11 +420,11 @@ export default function SentencesPage() {
     }
 
     return (
-      <div className="flex items-center justify-center space-x-1 mt-6">
+      <div className="flex items-center justify-center space-x-2 mt-8">
         <button
           onClick={() => handlePageChange(currentPage - 1)}
           disabled={currentPage === 1}
-          className="px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1"
+          className="px-4 py-2.5 text-sm font-semibold text-gray-600 bg-white/70 backdrop-blur-sm border border-gray-200 rounded-xl hover:bg-white hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 transition-all duration-200 hover:scale-105 transform disabled:hover:scale-100"
         >
           <ChevronLeft className="h-4 w-4" />
           <span>Previous</span>
@@ -435,7 +435,7 @@ export default function SentencesPage() {
         <button
           onClick={() => handlePageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
-          className="px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1"
+          className="px-4 py-2.5 text-sm font-semibold text-gray-600 bg-white/70 backdrop-blur-sm border border-gray-200 rounded-xl hover:bg-white hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 transition-all duration-200 hover:scale-105 transform disabled:hover:scale-100"
         >
           <span>Next</span>
           <ChevronRight className="h-4 w-4" />
@@ -456,32 +456,34 @@ export default function SentencesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       {/* Header */}
-      <div className="bg-gradient-to-r from-purple-50 to-pink-50 shadow-sm border-b border-purple-100">
-        <div className="max-w-4xl mx-auto px-3 py-4">
+      <div className="bg-white/80 backdrop-blur-md shadow-lg border-b border-white/20 sticky top-0 z-40">
+        <div className="max-w-4xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-4">
               <Link
                 href="/dashboard"
-                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-white/50 rounded-lg transition-colors"
+                className="p-2.5 text-gray-600 hover:text-gray-900 hover:bg-white/60 rounded-xl transition-all duration-200 group"
               >
-                <ArrowLeft className="h-5 w-5" />
+                <ArrowLeft className="h-5 w-5 group-hover:scale-110 transition-transform" />
               </Link>
-              <div className="h-6 w-px bg-purple-200"></div>
+              <div className="h-8 w-px bg-gradient-to-b from-transparent via-gray-300 to-transparent"></div>
               <div>
-                <h1 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
-                  <div className="p-1.5 bg-purple-100 rounded-lg">
-                    <MessageSquare className="h-4 w-4 text-purple-600" />
+                <h1 className="text-xl font-bold text-gray-900 flex items-center space-x-3">
+                  <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl shadow-lg">
+                    <MessageSquare className="h-5 w-5 text-white" />
                   </div>
-                  <span>My Sentences</span>
+                  <span className="bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                    My Sentences
+                  </span>
                 </h1>
-                <p className="text-xs text-gray-600 mt-0.5">Store quotes, sentences, and text snippets</p>
+                <p className="text-sm text-gray-600 mt-1 font-medium">Store quotes, sentences, and text snippets</p>
               </div>
             </div>
             <button
               onClick={() => setShowAddForm(true)}
-              className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-3 py-2 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all font-medium flex items-center space-x-1.5 text-sm shadow-md hover:shadow-lg"
+              className="bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600 text-white px-4 py-2.5 rounded-xl hover:from-purple-700 hover:via-pink-700 hover:to-rose-700 transition-all duration-300 font-semibold flex items-center space-x-2 text-sm shadow-lg hover:shadow-xl hover:scale-105 transform"
             >
               <Plus className="h-4 w-4" />
               <span className="hidden sm:inline">Add Sentence</span>
@@ -490,22 +492,22 @@ export default function SentencesPage() {
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-3 py-4">
+      <div className="max-w-4xl mx-auto px-4 py-6">
         {/* Success/Error Messages */}
         {success && (
-          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-xl">
+          <div className="mb-6 p-4 bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 rounded-2xl shadow-sm">
             <div className="flex items-center space-x-2">
-              <CheckCircle className="h-4 w-4 text-green-500" />
-              <span className="text-green-700">{success}</span>
+              <CheckCircle className="h-5 w-5 text-emerald-500" />
+              <span className="text-emerald-700 font-medium">{success}</span>
             </div>
           </div>
         )}
 
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
+          <div className="mb-6 p-4 bg-gradient-to-r from-red-50 to-rose-50 border border-red-200 rounded-2xl shadow-sm">
             <div className="flex items-center space-x-2">
-              <AlertCircle className="h-4 w-4 text-red-500" />
-              <span className="text-red-700">{error}</span>
+              <AlertCircle className="h-5 w-5 text-red-500" />
+              <span className="text-red-700 font-medium">{error}</span>
             </div>
           </div>
         )}
@@ -611,31 +613,33 @@ export default function SentencesPage() {
             </form>
           </div>
         ) : (
-          <div className="bg-white rounded-xl p-4 mb-4 shadow-sm border border-gray-100">
-            <div className="mb-3">
-              <h3 className="text-sm font-semibold text-gray-800 flex items-center space-x-2">
-                <div className="p-1 bg-purple-100 rounded-md">
-                  <Plus className="h-3 w-3 text-purple-600" />
+          <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 mb-6 shadow-xl border border-white/20 hover:shadow-2xl transition-all duration-300">
+            <div className="mb-4">
+              <h3 className="text-lg font-bold text-gray-800 flex items-center space-x-3">
+                <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-500 rounded-xl shadow-lg">
+                  <Plus className="h-4 w-4 text-white" />
                 </div>
-                <span>Quick Add</span>
+                <span className="bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
+                  Quick Add
+                </span>
               </h3>
-              <p className="text-xs text-gray-500 mt-1">Type anything and save it instantly</p>
+              <p className="text-sm text-gray-600 mt-2 font-medium">Type anything and save it instantly</p>
             </div>
-            <form onSubmit={handleQuickAdd} className="flex flex-col gap-3">
+            <form onSubmit={handleQuickAdd} className="flex flex-col gap-4">
               <div className="flex-1">
                 <input
                   type="text"
                   placeholder="Type anything here for quick add..."
                   value={quickText}
                   onChange={(e) => setQuickText(e.target.value)}
-                  className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900 placeholder-gray-500 text-sm bg-gray-50 focus:bg-white transition-colors"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900 placeholder-gray-500 text-sm bg-white/50 focus:bg-white transition-all duration-200 shadow-sm focus:shadow-md"
                   disabled={quickAdding}
                 />
               </div>
               <button
                 type="submit"
                 disabled={quickAdding || !quickText.trim()}
-                className="px-4 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all font-medium disabled:opacity-50 flex items-center justify-center space-x-1.5 text-sm shadow-md hover:shadow-lg disabled:shadow-none"
+                className="px-6 py-3 bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600 text-white rounded-xl hover:from-purple-700 hover:via-pink-700 hover:to-rose-700 transition-all duration-300 font-semibold disabled:opacity-50 flex items-center justify-center space-x-2 text-sm shadow-lg hover:shadow-xl hover:scale-105 transform disabled:hover:scale-100"
               >
                 {quickAdding ? (
                   <>
@@ -654,16 +658,18 @@ export default function SentencesPage() {
         )}
 
         {/* Filter Section */}
-        <div className="bg-white rounded-lg p-3 mb-4 shadow-sm border border-gray-100">
+        <div className="bg-white/70 backdrop-blur-sm rounded-xl p-4 mb-6 shadow-lg border border-white/20">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <Filter className="h-4 w-4 text-gray-500" />
-              <h3 className="text-xs font-medium text-gray-700">Filter by Type</h3>
+            <div className="flex items-center space-x-3">
+              <div className="p-1.5 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-lg shadow-md">
+                <Filter className="h-4 w-4 text-white" />
+              </div>
+              <h3 className="text-sm font-semibold text-gray-700">Filter by Type</h3>
             </div>
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
-              className="px-2.5 py-1.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm bg-gray-50 focus:bg-white transition-colors"
+              className="px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm bg-white/50 focus:bg-white transition-all duration-200 shadow-sm focus:shadow-md"
             >
               <option value="all">All Types</option>
               <option value="quote">Quotes</option>
@@ -676,23 +682,25 @@ export default function SentencesPage() {
 
 
         {/* Sentences List */}
-        <div className="space-y-3">
+        <div className="space-y-4">
           {filteredSentences.length === 0 ? (
-            <div className="bg-white rounded-lg p-6 text-center shadow-sm">
-              <MessageSquare className="h-10 w-10 text-gray-300 mx-auto mb-3" />
-              <h3 className="text-base font-semibold text-gray-900 mb-2">No sentences found</h3>
-              <p className="text-sm text-gray-600 mb-4">
+            <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-8 text-center shadow-xl border border-white/20">
+              <div className="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <MessageSquare className="h-8 w-8 text-gray-400" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">No sentences found</h3>
+              <p className="text-sm text-gray-600 mb-6">
                 {filterType !== 'all' 
                   ? 'Try adjusting your filter criteria or use Quick Add above'
                   : 'Start by typing something in the Quick Add box above, or use the detailed form'
                 }
               </p>
               {filterType === 'all' && (
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <p className="text-xs text-gray-500">Quick Add: Type anything and click "Quick Add"</p>
                   <button
                     onClick={() => setShowAddForm(true)}
-                    className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-3 py-1.5 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all font-medium flex items-center space-x-1.5 mx-auto text-sm"
+                    className="bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600 text-white px-4 py-2 rounded-xl hover:from-purple-700 hover:via-pink-700 hover:to-rose-700 transition-all font-semibold flex items-center space-x-2 mx-auto shadow-lg hover:shadow-xl hover:scale-105 transform"
                   >
                     <Plus className="h-4 w-4" />
                     <span>Detailed Form</span>
@@ -702,7 +710,7 @@ export default function SentencesPage() {
             </div>
           ) : (
             filteredSentences.map((sentence) => (
-              <div key={sentence._id} className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-200 border border-gray-100 hover:border-purple-200">
+              <div key={sentence._id} className="bg-white/70 backdrop-blur-sm rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all duration-300 border border-white/20 hover:border-purple-200/50 group">
                 {editingSentenceId === sentence._id ? (
                   // Edit Mode
                   <div className="space-y-3">
@@ -785,48 +793,48 @@ export default function SentencesPage() {
                 ) : (
                   // View Mode
                   <div>
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center space-x-2">
-                        <div className={`px-2 py-1 rounded-lg border text-xs font-medium flex items-center space-x-1.5 ${getTypeColor(sentence.type)}`}>
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-center space-x-3">
+                        <div className={`px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center space-x-2 ${getTypeColor(sentence.type)} shadow-sm`}>
                           {getTypeIcon(sentence.type)}
                           <span className="capitalize">{sentence.type}</span>
                         </div>
                         {sentence.author && (
-                          <div className="flex items-center space-x-1 text-xs text-gray-500 bg-gray-50 px-2 py-1 rounded-md">
+                          <div className="flex items-center space-x-2 text-xs text-gray-500 bg-gray-50/80 px-3 py-1.5 rounded-lg backdrop-blur-sm">
                             <User className="h-3 w-3" />
-                            <span>{sentence.author}</span>
+                            <span className="font-medium">{sentence.author}</span>
                           </div>
                         )}
                       </div>
                       <div className="flex items-center space-x-1">
                         <button
                           onClick={() => handleEditSentence(sentence)}
-                          className="p-2 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-all"
+                          className="p-2.5 text-gray-400 hover:text-blue-500 hover:bg-blue-50/80 rounded-xl transition-all duration-200 group"
                         >
-                          <Edit3 className="h-4 w-4" />
+                          <Edit3 className="h-4 w-4 group-hover:scale-110 transition-transform" />
                         </button>
                         <button
                           onClick={() => handleDeleteSentence(sentence._id!)}
-                          className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                          className="p-2.5 text-gray-400 hover:text-red-500 hover:bg-red-50/80 rounded-xl transition-all duration-200 group"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-4 w-4 group-hover:scale-110 transition-transform" />
                         </button>
                       </div>
                     </div>
 
-                    <p className="text-gray-900 mb-3 leading-relaxed text-sm bg-gray-50 p-3 rounded-lg">{sentence.text}</p>
+                    <p className="text-gray-900 mb-4 leading-relaxed text-sm bg-gray-50/50 p-4 rounded-xl backdrop-blur-sm border border-gray-100/50">{sentence.text}</p>
 
                     <div className="flex items-center justify-between text-xs text-gray-500">
                       <div className="flex items-center space-x-3">
                         {sentence.source && (
-                          <div className="flex items-center space-x-1 bg-gray-50 px-2 py-1 rounded-md">
+                          <div className="flex items-center space-x-2 bg-gray-50/80 px-3 py-1.5 rounded-lg backdrop-blur-sm">
                             <Tag className="h-3 w-3" />
-                            <span>{sentence.source}</span>
+                            <span className="font-medium">{sentence.source}</span>
                           </div>
                         )}
-                        <div className="flex items-center space-x-1 bg-gray-50 px-2 py-1 rounded-md">
+                        <div className="flex items-center space-x-2 bg-gray-50/80 px-3 py-1.5 rounded-lg backdrop-blur-sm">
                           <Calendar className="h-3 w-3" />
-                          <span>{new Date(sentence.createdAt).toLocaleDateString()}</span>
+                          <span className="font-medium">{new Date(sentence.createdAt).toLocaleDateString()}</span>
                         </div>
                       </div>
                     </div>
@@ -843,29 +851,29 @@ export default function SentencesPage() {
 
       {/* Delete Confirmation Modal */}
       {showDeleteConfirm && sentenceToDelete && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl p-6 w-full max-w-sm shadow-xl">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl border border-white/20">
             <div className="text-center">
-              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Trash2 className="h-6 w-6 text-red-600" />
+              <div className="w-16 h-16 bg-gradient-to-br from-red-100 to-rose-100 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                <Trash2 className="h-8 w-8 text-red-600" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Delete Sentence</h3>
-              <p className="text-sm text-gray-600 mb-4">
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Delete Sentence</h3>
+              <p className="text-sm text-gray-600 mb-6">
                 Are you sure you want to delete this sentence? This action cannot be undone.
               </p>
-              <div className="bg-gray-50 p-3 rounded-lg mb-4">
-                <p className="text-sm text-gray-800 italic">"{sentenceToDelete.text}"</p>
+              <div className="bg-gray-50/50 p-4 rounded-xl mb-6 border border-gray-100/50">
+                <p className="text-sm text-gray-800 italic leading-relaxed">"{sentenceToDelete.text}"</p>
               </div>
               <div className="flex space-x-3">
                 <button
                   onClick={cancelDelete}
-                  className="flex-1 px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors font-medium"
+                  className="flex-1 px-4 py-3 text-gray-600 hover:text-gray-800 transition-colors font-semibold rounded-xl hover:bg-gray-50"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={confirmDelete}
-                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+                  className="flex-1 px-4 py-3 bg-gradient-to-r from-red-600 to-rose-600 text-white rounded-xl hover:from-red-700 hover:to-rose-700 transition-all font-semibold shadow-lg hover:shadow-xl hover:scale-105 transform"
                 >
                   Delete
                 </button>

@@ -127,10 +127,27 @@ export async function DELETE(request: NextRequest) {
     const sentenceId = searchParams.get('id');
     const userId = searchParams.get('userId');
 
+    console.log('🗑️ DELETE request received:');
+    console.log('- Sentence ID:', sentenceId);
+    console.log('- User ID:', userId);
+
     if (!sentenceId || !userId) {
+      console.log('❌ Missing required parameters');
       return NextResponse.json({ 
         error: 'Sentence ID and User ID are required' 
       }, { status: 400 });
+    }
+
+    // Check if sentence exists first
+    const existingSentence = await db.collection('sentences').findOne({
+      _id: new ObjectId(sentenceId),
+      userId: new ObjectId(userId)
+    });
+
+    console.log('🔍 Existing sentence found:', existingSentence ? 'YES' : 'NO');
+    if (existingSentence) {
+      console.log('- Sentence text:', existingSentence.text);
+      console.log('- Sentence userId:', existingSentence.userId);
     }
 
     const result = await db.collection('sentences').deleteOne({
@@ -138,16 +155,20 @@ export async function DELETE(request: NextRequest) {
       userId: new ObjectId(userId)
     });
 
+    console.log('🗑️ Delete result:', result);
+
     if (result.deletedCount === 0) {
+      console.log('❌ No sentence deleted - sentence not found');
       return NextResponse.json({ error: 'Sentence not found' }, { status: 404 });
     }
 
+    console.log('✅ Sentence deleted successfully');
     return NextResponse.json({ 
       success: true, 
       message: 'Sentence deleted successfully' 
     });
   } catch (error) {
-    console.error('Error deleting sentence:', error);
+    console.error('❌ Error deleting sentence:', error);
     return NextResponse.json({ error: 'Failed to delete sentence' }, { status: 500 });
   }
 }
