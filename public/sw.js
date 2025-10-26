@@ -1,4 +1,4 @@
-const CACHE_NAME = 'wordyfy-app-v1';
+const CACHE_NAME = 'wordyfy-app-v2';
 const urlsToCache = [
   '/',
   '/manifest.json',
@@ -59,4 +59,11 @@ self.addEventListener('fetch', (event) => {
         return fetch(event.request);
       })
   );
+});
+
+// Handle app installation
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
