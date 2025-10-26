@@ -232,6 +232,13 @@ export default function Dashboard() {
       return;
     }
 
+    // Check if userId is available
+    if (!userId) {
+      console.error('No userId available');
+      setMessageWithTimeout('❌ Error: User not logged in. Please refresh the page.');
+      return;
+    }
+
     const trimmedWord = word.trim().toLowerCase();
     
     // Check if word already exists
@@ -253,6 +260,8 @@ export default function Dashboard() {
     setShowSuggestions(false);
     setIsValidWord(true);
 
+    console.log('Adding word:', { word: trimmedWord, userId: userId });
+
     try {
       const response = await fetch('/api/words', {
         method: 'POST',
@@ -260,14 +269,16 @@ export default function Dashboard() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          word: trimmedWord,
+          englishWord: trimmedWord,
           userId: userId
         }),
       });
 
       const data = await response.json();
+      console.log('API Response:', { status: response.status, data });
 
       if (response.ok) {
+        console.log('Word added successfully:', data.word);
         setMessageWithTimeout(`✅ "${trimmedWord}" added! Hindi: ${data.word.translation || data.word.hindiTranslation || 'N/A'}`);
         setCurrentWordData(data.word);
         setWord('');
@@ -275,10 +286,9 @@ export default function Dashboard() {
         setIsValidWord(true);
         
         // Reload words to update statistics
-        if (userId) {
-          loadUserWords(userId);
-        }
+        loadUserWords(userId);
       } else {
+        console.error('API Error:', data);
         setMessageWithTimeout(`❌ Error: ${data.error || 'Failed to add word'}`);
       }
     } catch (error) {
