@@ -100,37 +100,30 @@ export default function Dashboard() {
     }
 
     try {
-      // Try multiple API endpoints for better suggestions
-      const responses = await Promise.allSettled([
-        fetch(`https://api.datamuse.com/words?sp=${lowerWord}&max=5`),
-        fetch(`https://api.datamuse.com/words?ml=${lowerWord}&max=3`),
-        fetch(`https://api.datamuse.com/words?rel_syn=${lowerWord}&max=3`)
-      ]);
+      // Try spelling suggestions first
+      const response = await fetch(`https://api.datamuse.com/words?sp=${lowerWord}&max=5`);
+      const data = await response.json();
       
-      let allSuggestions: string[] = [];
-      
-      responses.forEach((response) => {
-        if (response.status === 'fulfilled' && response.value.ok) {
-          response.value.json().then((data: any) => {
-            if (data && data.length > 0) {
-              const words = data.map((item: any) => item.word).filter((suggestion: string) => 
-                suggestion.toLowerCase() !== lowerWord && 
-                suggestion.length > 1 &&
-                !allSuggestions.includes(suggestion.toLowerCase())
-              );
-              allSuggestions = [...allSuggestions, ...words];
-            }
-          }).catch(() => {});
+      if (data && data.length > 0) {
+        const suggestions = data.map((item: any) => item.word).filter((suggestion: string) => 
+          suggestion.toLowerCase() !== lowerWord && 
+          suggestion.length > 1
+        );
+        
+        if (suggestions.length > 0) {
+          setSuggestions(suggestions);
+          setShowSuggestions(true);
+          setIsValidWord(false);
+        } else {
+          setSuggestions([]);
+          setShowSuggestions(false);
+          setIsValidWord(true);
         }
-      });
-      
-      // Wait a bit for all responses to process
-      setTimeout(() => {
-        const uniqueSuggestions = [...new Set(allSuggestions)].slice(0, 5);
-        setSuggestions(uniqueSuggestions);
-        setShowSuggestions(uniqueSuggestions.length > 0);
-        setIsValidWord(uniqueSuggestions.length === 0);
-      }, 500);
+      } else {
+        setSuggestions([]);
+        setShowSuggestions(false);
+        setIsValidWord(true);
+      }
       
     } catch (error) {
       console.error('Error fetching suggestions:', error);
@@ -141,9 +134,12 @@ export default function Dashboard() {
   };
 
   const handleSuggestionClick = (suggestion: string) => {
+    console.log('Suggestion clicked:', suggestion);
     setWord(suggestion);
-      setShowSuggestions(false);
+    setShowSuggestions(false);
     setIsValidWord(true);
+    // Clear any existing message
+    setMessage('');
   };
 
   const playPronunciation = (word: string, isHindi: boolean = false) => {
@@ -235,7 +231,7 @@ export default function Dashboard() {
     if (!word.trim()) {
       return;
     }
-    
+
     const trimmedWord = word.trim().toLowerCase();
     
     // Check if word already exists
@@ -251,14 +247,11 @@ export default function Dashboard() {
       return;
     }
 
-    // Check if the word matches any suggestion (direct match)
-    if (suggestions.includes(trimmedWord)) {
-      setIsValidWord(true);
-      setShowSuggestions(false);
-    }
-
+    // Always allow adding the word, regardless of suggestions
     setLoading(true);
     setMessage('');
+    setShowSuggestions(false);
+    setIsValidWord(true);
 
     try {
       const response = await fetch('/api/words', {
@@ -266,7 +259,7 @@ export default function Dashboard() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           word: trimmedWord,
           userId: userId
         }),
@@ -283,7 +276,7 @@ export default function Dashboard() {
         
         // Reload words to update statistics
         if (userId) {
-        loadUserWords(userId);
+          loadUserWords(userId);
         }
       } else {
         setMessageWithTimeout(`❌ Error: ${data.error || 'Failed to add word'}`);
@@ -310,6 +303,21 @@ export default function Dashboard() {
 
     return () => clearTimeout(timeoutId);
   }, [word]);
+
+  // Close suggestions when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest('.suggestions-container')) {
+        setShowSuggestions(false);
+      }
+    };
+
+    if (showSuggestions) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showSuggestions]);
 
   if (!mounted) {
     return (
@@ -374,20 +382,23 @@ export default function Dashboard() {
                 <div className="flex items-center space-x-2">
                   <div className="flex-1 relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <input
-                    type="text"
-                    value={word}
-                      onChange={(e) => setWord(e.target.value)}
+                    <input
+                      type="text"
+                      value={word}
+                      onChange={(e) => {
+                        setWord(e.target.value);
+                        setMessage('');
+                      }}
                       onFocus={() => setMessage('')}
                       placeholder="Enter a word..."
                       className={`w-full pl-10 pr-4 py-2.5 bg-gray-50 border-0 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all ${
-                        !isValidWord ? 'ring-2 ring-red-500' : ''
+                        !isValidWord && showSuggestions ? 'ring-2 ring-red-500' : ''
                       }`}
-                    spellCheck={true}
-                    autoCorrect="on"
-                    autoCapitalize="off"
+                      spellCheck={true}
+                      autoCorrect="on"
+                      autoCapitalize="off"
                     />
-                    {!isValidWord && (
+                    {!isValidWord && showSuggestions && (
                       <AlertCircle className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-red-500" />
                     )}
                           </div>
@@ -408,26 +419,30 @@ export default function Dashboard() {
             
                 {/* Suggestions Dropdown - Enhanced */}
                 {showSuggestions && suggestions.length > 0 && (
-                  <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-200 z-50 max-h-40 overflow-y-auto animate-slideInDown">
+                  <div className="suggestions-container absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-200 z-50 max-h-40 overflow-y-auto animate-slideInDown">
                     <div className="p-2">
                       <div className="text-xs text-gray-500 px-2 py-1 font-medium">Did you mean:</div>
                       {suggestions.map((suggestion, index) => (
-                      <button
+                        <button
                           key={index}
-                          onClick={() => handleSuggestionClick(suggestion)}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleSuggestionClick(suggestion);
+                          }}
                           className="w-full text-left px-3 py-2.5 hover:bg-blue-50 rounded-lg transition-all duration-150 text-sm font-medium text-gray-800 hover:text-blue-700 flex items-center space-x-2 group"
                         >
                           <span className="flex-1">{suggestion.charAt(0).toUpperCase() + suggestion.slice(1)}</span>
                           <div className="opacity-0 group-hover:opacity-100 transition-opacity">
                             <svg className="h-4 w-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                    </div>
-                      </button>
-                      ))}
+                            </svg>
                           </div>
-                                  </div>
-                                )}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
                               </div>
               
               {/* Message Display - Minimal */}
