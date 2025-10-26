@@ -5,7 +5,7 @@ import {
   Plus, MessageSquare, Quote, FileText, StickyNote, 
   Trash2, Calendar, User, Tag, Search, Filter,
   Loader2, AlertCircle, CheckCircle, ArrowLeft,
-  Edit3, Save, X, ChevronLeft, ChevronRight
+  Edit3, Save, X, ChevronLeft, ChevronRight, RefreshCw
 } from 'lucide-react';
 import Link from 'next/link';
 import { Sentence, CreateSentenceRequest } from '@/types/sentence';
@@ -64,20 +64,28 @@ export default function SentencesPage() {
   const loadSentences = async (userId: string, page: number = 1) => {
     try {
       setLoading(true);
+      console.log('📥 Loading sentences for user:', userId, 'page:', page);
+      
       const response = await fetch(`/api/sentences?userId=${userId}&page=${page}&limit=10`);
       const data = await response.json();
+      
+      console.log('📡 Sentences API response:', response.status, data);
       
       if (response.ok) {
         setSentences(data.sentences || []);
         setCurrentPage(data.pagination?.currentPage || 1);
         setTotalPages(data.pagination?.totalPages || 1);
         setTotalCount(data.pagination?.totalCount || 0);
+        console.log('✅ Loaded sentences:', data.sentences?.length || 0);
       } else {
+        console.error('❌ Failed to load sentences:', data);
         setError(data.error || 'Failed to load sentences');
+        setTimeout(() => setError(''), 5000);
       }
     } catch (error) {
-      console.error('Error loading sentences:', error);
+      console.error('❌ Error loading sentences:', error);
       setError('Failed to load sentences');
+      setTimeout(() => setError(''), 5000);
     } finally {
       setLoading(false);
     }
@@ -234,9 +242,26 @@ export default function SentencesPage() {
         setTimeout(() => setSuccess(''), 3000);
       } else {
         console.error('❌ Delete failed:', data);
-        setError(data.error || 'Failed to delete sentence');
-        // Clear error message after 5 seconds
-        setTimeout(() => setError(''), 5000);
+        
+        // If sentence not found, remove it from local state and reload
+        if (response.status === 404) {
+          console.log('🔄 Sentence not found in database, removing from local state and reloading...');
+          setSentences(prevSentences => 
+            prevSentences.filter(sentence => sentence._id !== sentenceToDelete._id)
+          );
+          
+          // Reload sentences to sync with database
+          setTimeout(() => {
+            loadSentences(userId, currentPage);
+          }, 100);
+          
+          setSuccess('✅ Sentence removed (was already deleted)');
+          setTimeout(() => setSuccess(''), 3000);
+        } else {
+          setError(data.error || 'Failed to delete sentence');
+          // Clear error message after 5 seconds
+          setTimeout(() => setError(''), 5000);
+        }
       }
     } catch (error) {
       console.error('❌ Error deleting sentence:', error);
@@ -356,6 +381,11 @@ export default function SentencesPage() {
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
     loadSentences(userId, page);
+  };
+
+  const handleRefresh = () => {
+    console.log('🔄 Refreshing sentences...');
+    loadSentences(userId, currentPage);
   };
 
   const renderPagination = () => {
@@ -481,13 +511,22 @@ export default function SentencesPage() {
                 <p className="text-sm text-gray-600 mt-1 font-medium">Store quotes, sentences, and text snippets</p>
               </div>
             </div>
-            <button
-              onClick={() => setShowAddForm(true)}
-              className="bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600 text-white px-4 py-2.5 rounded-xl hover:from-purple-700 hover:via-pink-700 hover:to-rose-700 transition-all duration-300 font-semibold flex items-center space-x-2 text-sm shadow-lg hover:shadow-xl hover:scale-105 transform"
-            >
-              <Plus className="h-4 w-4" />
-              <span className="hidden sm:inline">Add Sentence</span>
-            </button>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={handleRefresh}
+                className="p-2.5 text-gray-600 hover:text-gray-900 hover:bg-white/60 rounded-xl transition-all duration-200 group"
+                title="Refresh sentences"
+              >
+                <RefreshCw className="h-5 w-5 group-hover:rotate-180 transition-transform duration-500" />
+              </button>
+              <button
+                onClick={() => setShowAddForm(true)}
+                className="bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600 text-white px-4 py-2.5 rounded-xl hover:from-purple-700 hover:via-pink-700 hover:to-rose-700 transition-all duration-300 font-semibold flex items-center space-x-2 text-sm shadow-lg hover:shadow-xl hover:scale-105 transform"
+              >
+                <Plus className="h-4 w-4" />
+                <span className="hidden sm:inline">Add Sentence</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
