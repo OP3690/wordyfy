@@ -393,9 +393,9 @@ export default function QuizPage() {
               let buttonClass = "w-full p-6 text-left rounded-2xl font-semibold text-lg transition-all shadow-lg hover:shadow-xl ";
               
               if (showResult) {
-                if (option === currentQ.correctAnswer) {
+                if (option.text === currentQ.correctAnswer) {
                   buttonClass += "bg-gradient-to-r from-emerald-100 to-green-100 border-2 border-emerald-400 text-emerald-800";
-                } else if (option === selectedAnswer && option !== currentQ.correctAnswer) {
+                } else if (option.text === selectedAnswer && option.text !== currentQ.correctAnswer) {
                   buttonClass += "bg-gradient-to-r from-red-100 to-rose-100 border-2 border-red-400 text-red-800";
                 } else {
                   buttonClass += "bg-gray-100 text-gray-600";
@@ -407,16 +407,16 @@ export default function QuizPage() {
               return (
                 <button
                   key={index}
-                  onClick={() => handleAnswerSelect(option)}
+                  onClick={() => handleAnswerSelect(option.text)}
                   disabled={showResult}
                   className={buttonClass}
                 >
                   <div className="flex items-center justify-between">
-                    <span>{option}</span>
-                    {showResult && option === currentQ.correctAnswer && (
+                    <span>{option.text}</span>
+                    {showResult && option.text === currentQ.correctAnswer && (
                       <CheckCircle className="h-6 w-6 text-emerald-600" />
                     )}
-                    {showResult && option === selectedAnswer && option !== currentQ.correctAnswer && (
+                    {showResult && option.text === selectedAnswer && option.text !== currentQ.correctAnswer && (
                       <XCircle className="h-6 w-6 text-red-600" />
                     )}
                   </div>
