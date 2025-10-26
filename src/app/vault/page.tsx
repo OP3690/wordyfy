@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { getUserSession, restoreSession } from '@/lib/auth';
+import { Word } from '@/types/word';
 
 export default function VaultPage() {
   const [words, setWords] = useState<Word[]>([]);
