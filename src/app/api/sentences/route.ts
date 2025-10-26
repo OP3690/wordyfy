@@ -93,7 +93,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const result = await db.collection('sentences').updateOne(
-      { _id: sentenceId, userId },
+      { _id: new ObjectId(sentenceId), userId: new ObjectId(userId) },
       { 
         $set: { 
           text: text.trim(),
@@ -133,8 +133,8 @@ export async function DELETE(request: NextRequest) {
     }
 
     const result = await db.collection('sentences').deleteOne({
-      _id: sentenceId,
-      userId
+      _id: new ObjectId(sentenceId),
+      userId: new ObjectId(userId)
     });
 
     if (result.deletedCount === 0) {
