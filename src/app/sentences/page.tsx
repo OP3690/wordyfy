@@ -426,7 +426,7 @@ export default function SentencesPage() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
-        <div className="max-w-4xl mx-auto px-4 py-6">
+        <div className="max-w-4xl mx-auto px-3 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <Link
@@ -455,7 +455,7 @@ export default function SentencesPage() {
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 py-6">
+      <div className="max-w-4xl mx-auto px-3 py-4">
         {/* Success/Error Messages */}
         {success && (
           <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-xl">
@@ -577,21 +577,21 @@ export default function SentencesPage() {
           </div>
         ) : (
           <div className="bg-white rounded-xl p-4 mb-6 shadow-sm">
-            <form onSubmit={handleQuickAdd} className="flex flex-col sm:flex-row gap-4">
+            <form onSubmit={handleQuickAdd} className="flex flex-col gap-3">
               <div className="flex-1">
                 <input
                   type="text"
                   placeholder="Type anything here for quick add..."
                   value={quickText}
                   onChange={(e) => setQuickText(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900 placeholder-gray-500"
+                  className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900 placeholder-gray-500 text-sm"
                   disabled={quickAdding}
                 />
               </div>
               <button
                 type="submit"
                 disabled={quickAdding || !quickText.trim()}
-                className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all font-semibold disabled:opacity-50 flex items-center justify-center space-x-2"
+                className="px-4 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all font-medium disabled:opacity-50 flex items-center justify-center space-x-1.5 text-sm"
               >
                 {quickAdding ? (
                   <>
@@ -610,13 +610,13 @@ export default function SentencesPage() {
         )}
 
         {/* Filter Section */}
-        <div className="bg-white rounded-xl p-4 mb-6 shadow-sm">
+        <div className="bg-white rounded-lg p-3 mb-4 shadow-sm">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-medium text-gray-700">Filter by Type</h3>
+            <h3 className="text-xs font-medium text-gray-700">Filter by Type</h3>
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
-              className="px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+              className="px-2.5 py-1.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm"
             >
               <option value="all">All Types</option>
               <option value="quote">Quotes</option>
@@ -629,12 +629,12 @@ export default function SentencesPage() {
 
 
         {/* Sentences List */}
-        <div className="space-y-4">
+        <div className="space-y-3">
           {filteredSentences.length === 0 ? (
-            <div className="bg-white rounded-xl p-8 text-center shadow-sm">
-              <MessageSquare className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">No sentences found</h3>
-              <p className="text-gray-600 mb-4">
+            <div className="bg-white rounded-lg p-6 text-center shadow-sm">
+              <MessageSquare className="h-10 w-10 text-gray-300 mx-auto mb-3" />
+              <h3 className="text-base font-semibold text-gray-900 mb-2">No sentences found</h3>
+              <p className="text-sm text-gray-600 mb-4">
                 {filterType !== 'all' 
                   ? 'Try adjusting your filter criteria or use Quick Add above'
                   : 'Start by typing something in the Quick Add box above, or use the detailed form'
@@ -642,10 +642,10 @@ export default function SentencesPage() {
               </p>
               {filterType === 'all' && (
                 <div className="space-y-2">
-                  <p className="text-sm text-gray-500">Quick Add: Type anything and click "Quick Add"</p>
+                  <p className="text-xs text-gray-500">Quick Add: Type anything and click "Quick Add"</p>
                   <button
                     onClick={() => setShowAddForm(true)}
-                    className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-2 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all font-semibold flex items-center space-x-2 mx-auto"
+                    className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-3 py-1.5 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all font-medium flex items-center space-x-1.5 mx-auto text-sm"
                   >
                     <Plus className="h-4 w-4" />
                     <span>Detailed Form</span>
@@ -655,17 +655,17 @@ export default function SentencesPage() {
             </div>
           ) : (
             filteredSentences.map((sentence) => (
-              <div key={sentence._id} className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
+              <div key={sentence._id} className="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
                 {editingSentenceId === sentence._id ? (
                   // Edit Mode
-                  <div className="space-y-4">
+                  <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <h4 className="text-lg font-semibold text-gray-900">Edit Sentence</h4>
-                      <div className="flex items-center space-x-2">
+                      <h4 className="text-base font-semibold text-gray-900">Edit Sentence</h4>
+                      <div className="flex items-center space-x-1.5">
                         <button
                           onClick={handleSaveEdit}
                           disabled={editing || !editedText.trim()}
-                          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center space-x-2"
+                          className="px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center space-x-1.5 text-sm"
                         >
                           {editing ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
@@ -676,7 +676,7 @@ export default function SentencesPage() {
                         </button>
                         <button
                           onClick={handleCancelEdit}
-                          className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors flex items-center space-x-2"
+                          className="px-3 py-1.5 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors flex items-center space-x-1.5 text-sm"
                         >
                           <X className="h-4 w-4" />
                           <span>Cancel</span>
@@ -738,20 +738,20 @@ export default function SentencesPage() {
                 ) : (
                   // View Mode
                   <div>
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center space-x-2">
-                        <div className={`px-2 py-1 rounded-md border text-xs font-medium flex items-center space-x-1 ${getTypeColor(sentence.type)}`}>
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex items-center space-x-1.5">
+                        <div className={`px-1.5 py-0.5 rounded-md border text-xs font-medium flex items-center space-x-1 ${getTypeColor(sentence.type)}`}>
                           {getTypeIcon(sentence.type)}
                           <span className="capitalize">{sentence.type}</span>
                         </div>
                         {sentence.author && (
-                          <div className="flex items-center space-x-1 text-sm text-gray-500">
+                          <div className="flex items-center space-x-1 text-xs text-gray-500">
                             <User className="h-3 w-3" />
                             <span>{sentence.author}</span>
                           </div>
                         )}
                       </div>
-                      <div className="flex items-center space-x-1">
+                      <div className="flex items-center space-x-0.5">
                         <button
                           onClick={() => handleEditSentence(sentence)}
                           className="p-1 text-gray-400 hover:text-blue-500 transition-colors"
@@ -767,10 +767,10 @@ export default function SentencesPage() {
                       </div>
                     </div>
 
-                    <p className="text-gray-900 mb-3 leading-relaxed">{sentence.text}</p>
+                    <p className="text-gray-900 mb-2 leading-relaxed text-sm">{sentence.text}</p>
 
-                    <div className="flex items-center justify-between text-sm text-gray-500">
-                      <div className="flex items-center space-x-4">
+                    <div className="flex items-center justify-between text-xs text-gray-500">
+                      <div className="flex items-center space-x-3">
                         {sentence.source && (
                           <div className="flex items-center space-x-1">
                             <Tag className="h-3 w-3" />
