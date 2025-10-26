@@ -179,6 +179,8 @@ function generateDefinitions(englishWord: string, hindiTranslation: string): Wor
       {
         definition: 'The authority to represent someone else, especially in voting',
         example: 'She voted by proxy since she couldn\'t attend the meeting.',
+        synonyms: [],
+        antonyms: []
       }
     ],
     'beautiful': [
@@ -197,6 +199,8 @@ function generateDefinitions(englishWord: string, hindiTranslation: string): Wor
       {
         definition: 'Having qualities that give great pleasure or satisfaction to see, hear, think about, etc.',
         example: 'The beautiful architecture of the old building amazed the tourists.',
+        synonyms: [],
+        antonyms: []
       }
     ],
     'computer': [
@@ -213,6 +217,8 @@ function generateDefinitions(englishWord: string, hindiTranslation: string): Wor
       {
         definition: 'A machine that can be programmed to carry out sequences of arithmetic or logical operations automatically',
         example: 'She learned to program on her father\'s computer.',
+        synonyms: [],
+        antonyms: []
       }
     ],
     'education': [
@@ -229,6 +235,8 @@ function generateDefinitions(englishWord: string, hindiTranslation: string): Wor
       {
         definition: 'Information about or training in a particular subject',
         example: 'Online education has become very popular during the pandemic.',
+        synonyms: [],
+        antonyms: []
       }
     ],
     'knowledge': [
@@ -245,6 +253,8 @@ function generateDefinitions(englishWord: string, hindiTranslation: string): Wor
       {
         definition: 'Awareness or familiarity gained by experience of a fact or situation',
         example: 'Sharing knowledge with others helps everyone grow.',
+        synonyms: [],
+        antonyms: []
       }
     ],
     'learning': [
@@ -259,6 +269,8 @@ function generateDefinitions(englishWord: string, hindiTranslation: string): Wor
       {
         definition: 'The cognitive process of acquiring skill or knowledge',
         example: 'Active learning helps students retain information better.',
+        synonyms: [],
+        antonyms: []
       }
     ],
     'world': [
@@ -275,6 +287,8 @@ function generateDefinitions(englishWord: string, hindiTranslation: string): Wor
       {
         definition: 'All of the people, societies, and institutions on the earth',
         example: 'The world\'s population continues to grow rapidly.',
+        synonyms: [],
+        antonyms: []
       }
     ]
   };
@@ -283,7 +297,9 @@ function generateDefinitions(englishWord: string, hindiTranslation: string): Wor
     {
       definition: `The Hindi translation of "${englishWord}" is "${hindiTranslation}"`,
       example: `Example: The word "${englishWord}" means "${hindiTranslation}" in Hindi.`,
-    }
+        synonyms: [],
+        antonyms: []
+      }
   ];
 }
 
