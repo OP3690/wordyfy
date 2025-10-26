@@ -1,4 +1,4 @@
-const CACHE_NAME = 'wordyfy-v1';
+const CACHE_NAME = 'wordyfy-v2';
 const urlsToCache = [
   '/',
   '/dashboard',

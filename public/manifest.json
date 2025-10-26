@@ -12,30 +12,28 @@
   "categories": ["education", "productivity"],
   "icons": [
     {
-      "src": "/puzzle_icon.png",
+      "src": "/icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "maskable any"
+      "purpose": "any"
     },
     {
-      "src": "/puzzle_icon.png",
+      "src": "/icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "maskable any"
-    }
-  ],
-  "screenshots": [
-    {
-      "src": "/screenshot-mobile.png",
-      "sizes": "390x844",
-      "type": "image/png",
-      "form_factor": "narrow"
+      "purpose": "any"
     },
     {
-      "src": "/screenshot-desktop.png",
-      "sizes": "1280x720",
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
       "type": "image/png",
-      "form_factor": "wide"
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
   "shortcuts": [
@@ -46,7 +44,7 @@
       "url": "/dashboard",
       "icons": [
         {
-          "src": "/puzzle_icon.png",
+          "src": "/icon-192x192.png",
           "sizes": "192x192"
         }
       ]
@@ -58,7 +56,7 @@
       "url": "/quiz",
       "icons": [
         {
-          "src": "/puzzle_icon.png",
+          "src": "/icon-192x192.png",
           "sizes": "192x192"
         }
       ]
@@ -70,7 +68,7 @@
       "url": "/vault",
       "icons": [
         {
-          "src": "/puzzle_icon.png",
+          "src": "/icon-192x192.png",
           "sizes": "192x192"
         }
       ]

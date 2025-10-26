@@ -18,12 +18,19 @@ export default function InstallPrompt() {
 
   useEffect(() => {
     const handleBeforeInstallPrompt = (e: Event) => {
+      console.log('🔔 beforeinstallprompt event fired');
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
       setShowInstallPrompt(true);
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    // Debug: Check if PWA criteria are met
+    console.log('🔍 PWA Debug Info:');
+    console.log('- Service Worker:', 'serviceWorker' in navigator);
+    console.log('- Manifest:', document.querySelector('link[rel="manifest"]')?.getAttribute('href'));
+    console.log('- HTTPS:', location.protocol === 'https:' || location.hostname === 'localhost');
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
