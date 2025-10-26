@@ -18,6 +18,7 @@ import {
   Flame
 } from 'lucide-react';
 import Link from 'next/link';
+import InstallPrompt from '@/components/InstallPrompt';
 
 export default function Home() {
   const [searchWord, setSearchWord] = useState('');
@@ -59,7 +60,7 @@ export default function Home() {
               <div className="p-3 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl shadow-lg">
                 <Zap className="h-8 w-8 text-white" />
               </div>
-              <h1 className="text-3xl font-bold text-gray-900">Wordyfy</h1>
+              <h1 className="text-3xl font-bold text-gray-900">WordyFy</h1>
             </Link>
             <nav className="flex space-x-6">
               <Link
@@ -257,6 +258,7 @@ export default function Home() {
           </div>
         </div>
       </main>
+      <InstallPrompt />
     </div>
   );
 }

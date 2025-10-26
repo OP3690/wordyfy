@@ -24,33 +24,51 @@ export default function InstallPrompt() {
       setShowInstallPrompt(true);
     };
 
+    const handleAppInstalled = () => {
+      console.log('✅ PWA was installed successfully!');
+      setShowInstallPrompt(false);
+      setDeferredPrompt(null);
+    };
+
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
 
     // Debug: Check if PWA criteria are met
     console.log('🔍 PWA Debug Info:');
     console.log('- Service Worker:', 'serviceWorker' in navigator);
     console.log('- Manifest:', document.querySelector('link[rel="manifest"]')?.getAttribute('href'));
     console.log('- HTTPS:', location.protocol === 'https:' || location.hostname === 'localhost');
+    console.log('- User Agent:', navigator.userAgent);
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
     };
   }, []);
 
   const handleInstallClick = async () => {
-    if (!deferredPrompt) return;
-
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    
-    if (outcome === 'accepted') {
-      console.log('User accepted the install prompt');
-    } else {
-      console.log('User dismissed the install prompt');
+    if (!deferredPrompt) {
+      console.log('❌ No deferred prompt available');
+      return;
     }
-    
-    setDeferredPrompt(null);
-    setShowInstallPrompt(false);
+
+    console.log('🚀 Triggering install prompt...');
+    try {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      console.log('📱 User choice:', outcome);
+      
+      if (outcome === 'accepted') {
+        console.log('✅ User accepted the install prompt');
+      } else {
+        console.log('❌ User dismissed the install prompt');
+      }
+      
+      setDeferredPrompt(null);
+      setShowInstallPrompt(false);
+    } catch (error) {
+      console.error('❌ Error during install:', error);
+    }
   };
 
   const handleDismiss = () => {
@@ -82,7 +100,7 @@ export default function InstallPrompt() {
           </div>
           <div className="flex-1 min-w-0">
             <h3 className="text-sm font-semibold text-gray-900 mb-1">
-              Install Wordyfy
+              Install WordyFy
             </h3>
             <p className="text-xs text-gray-600 mb-3">
               Add to your home screen for quick access and offline learning!
