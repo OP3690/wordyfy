@@ -147,136 +147,134 @@ function generateDefinitions(englishWord: string, hindiTranslation: string): Wor
       {
         definition: 'All the people in a family, group or country who were born at about the same time',
         example: 'We should look after the planet for future generations.',
-        context: 'Demographics'
+        synonyms: [],
+        antonyms: []
       },
       {
         definition: 'The average time that children take to grow up and have children of their own, usually considered to be about 25-30 years',
         example: 'A generation ago, foreign travel was still only possible for a few people.',
-        context: 'Time period'
+        synonyms: [],
+        antonyms: []
       },
       {
         definition: 'The production of something, especially heat, power, etc.',
         example: 'The new generation of smartphones has better cameras.',
-        context: 'Technology'
+        synonyms: [],
+        antonyms: []
       }
     ],
     'proxy': [
       {
         definition: 'A person authorized to act on behalf of another',
         example: 'He acted as a proxy for the company during the meeting.',
-        context: 'Business/Professional'
+      synonyms: [],
+        antonyms: []
       },
       {
         definition: 'A server that acts as an intermediary for requests from clients seeking resources from other servers',
         example: 'The proxy server helps protect your privacy online.',
-        context: 'Technology'
+      synonyms: [],
+        antonyms: []
       },
       {
         definition: 'The authority to represent someone else, especially in voting',
         example: 'She voted by proxy since she couldn\'t attend the meeting.',
-        context: 'Legal/Political'
       }
     ],
     'beautiful': [
       {
         definition: 'Pleasing the senses or mind aesthetically',
         example: 'The sunset over the mountains was absolutely beautiful.',
-        context: 'Aesthetic'
+      synonyms: [],
+        antonyms: []
       },
       {
         definition: 'Of a very high standard; excellent',
         example: 'She has a beautiful voice that captivates everyone.',
-        context: 'Quality'
+      synonyms: [],
+        antonyms: []
       },
       {
         definition: 'Having qualities that give great pleasure or satisfaction to see, hear, think about, etc.',
         example: 'The beautiful architecture of the old building amazed the tourists.',
-        context: 'Appreciation'
       }
     ],
     'computer': [
       {
         definition: 'An electronic device for storing and processing data, typically in binary form',
         example: 'My computer crashed while I was working on an important project.',
-        context: 'Technology'
       },
       {
         definition: 'A person who makes calculations or computations',
         example: 'The computer lab has the latest technology for students.',
-        context: 'Historical'
+      synonyms: [],
+        antonyms: []
       },
       {
         definition: 'A machine that can be programmed to carry out sequences of arithmetic or logical operations automatically',
         example: 'She learned to program on her father\'s computer.',
-        context: 'Technical'
       }
     ],
     'education': [
       {
         definition: 'The process of receiving or giving systematic instruction, especially at a school or university',
         example: 'Education is the key to success in life.',
-        context: 'Academic'
       },
       {
         definition: 'The theory and practice of teaching',
         example: 'The government is investing more in education this year.',
-        context: 'Policy'
+      synonyms: [],
+        antonyms: []
       },
       {
         definition: 'Information about or training in a particular subject',
         example: 'Online education has become very popular during the pandemic.',
-        context: 'Modern'
       }
     ],
     'knowledge': [
       {
         definition: 'Facts, information, and skills acquired through experience or education',
         example: 'Knowledge is power, but wisdom is even more valuable.',
-        context: 'Philosophy'
       },
       {
         definition: 'The theoretical or practical understanding of a subject',
         example: 'She has extensive knowledge of ancient history.',
-        context: 'Academic'
+      synonyms: [],
+        antonyms: []
       },
       {
         definition: 'Awareness or familiarity gained by experience of a fact or situation',
         example: 'Sharing knowledge with others helps everyone grow.',
-        context: 'Social'
       }
     ],
     'learning': [
       {
         definition: 'The acquisition of knowledge or skills through study, experience, or being taught',
         example: 'Learning never stops, even after graduation.',
-        context: 'Lifelong'
       },
       {
         definition: 'Knowledge acquired through experience, study, or being taught',
         example: 'The learning process can be challenging but rewarding.',
-        context: 'Process'
       },
       {
         definition: 'The cognitive process of acquiring skill or knowledge',
         example: 'Active learning helps students retain information better.',
-        context: 'Method'
       }
     ],
     'world': [
       {
         definition: 'The earth, together with all of its countries, peoples, and natural features',
         example: 'The world is becoming more connected through technology.',
-        context: 'Global'
       },
       {
         definition: 'A particular region or group of countries',
         example: 'Traveling the world broadens your perspective on life.',
-        context: 'Geographic'
+      synonyms: [],
+        antonyms: []
       },
       {
         definition: 'All of the people, societies, and institutions on the earth',
         example: 'The world\'s population continues to grow rapidly.',
-        context: 'Social'
       }
     ]
   };
@@ -285,7 +283,6 @@ function generateDefinitions(englishWord: string, hindiTranslation: string): Wor
     {
       definition: `The Hindi translation of "${englishWord}" is "${hindiTranslation}"`,
       example: `Example: The word "${englishWord}" means "${hindiTranslation}" in Hindi.`,
-      context: 'General usage'
     }
   ];
 }
@@ -296,141 +293,116 @@ function generateExamples(englishWord: string, hindiTranslation: string): WordEx
       {
         english: "We should look after the planet for future generations.",
         hindi: "हमें भविष्य की पीढ़ियों के लिए ग्रह की देखभाल करनी चाहिए।",
-        context: 'Environmental'
       },
       {
         english: "This photograph shows three generations of my family - children, parents and grandparents.",
         hindi: "यह तस्वीर मेरे परिवार की तीन पीढ़ियों को दिखाती है - बच्चे, माता-पिता और दादा-दादी।",
-        context: 'Family'
       },
       {
         english: "A generation ago, foreign travel was still only possible for a few people.",
         hindi: "एक पीढ़ी पहले, विदेश यात्रा अभी भी कुछ लोगों के लिए ही संभव थी।",
-        context: 'Historical'
       },
       {
         english: "The new generation of smartphones has better cameras.",
         hindi: "स्मार्टफोन की नई पीढ़ी में बेहतर कैमरे हैं।",
-        context: 'Technology'
       }
     ],
     'proxy': [
       {
         english: "He acted as a proxy for the company during the meeting.",
         hindi: "बैठक के दौरान उन्होंने कंपनी के लिए प्रतिनिधि के रूप में काम किया।",
-        context: 'Business'
       },
       {
         english: "The proxy server helps protect your privacy online.",
         hindi: "प्रॉक्सी सर्वर आपकी ऑनलाइन गोपनीयता की रक्षा करने में मदद करता है।",
-        context: 'Technology'
       },
       {
         english: "She voted by proxy since she couldn't attend the meeting.",
         hindi: "चूंकि वह बैठक में शामिल नहीं हो सकी, उसने प्रॉक्सी के माध्यम से वोट दिया।",
-        context: 'Legal'
       }
     ],
     'beautiful': [
       {
         english: "The sunset over the mountains was absolutely beautiful.",
         hindi: "पहाड़ों पर सूर्यास्त बिल्कुल सुंदर था।",
-        context: 'Nature'
       },
       {
         english: "She has a beautiful voice that captivates everyone.",
         hindi: "उसकी आवाज़ बहुत सुंदर है जो सभी को मोहित कर देती है।",
-        context: 'Personal'
       },
       {
         english: "The beautiful architecture of the old building amazed the tourists.",
         hindi: "पुरानी इमारत की सुंदर वास्तुकला ने पर्यटकों को आश्चर्यचकित कर दिया।",
-        context: 'Architecture'
       }
     ],
     'computer': [
       {
         english: "My computer crashed while I was working on an important project.",
         hindi: "मेरा कंप्यूटर तब क्रैश हो गया जब मैं एक महत्वपूर्ण प्रोजेक्ट पर काम कर रहा था।",
-        context: 'Work'
       },
       {
         english: "The computer lab has the latest technology for students.",
         hindi: "कंप्यूटर लैब में छात्रों के लिए नवीनतम तकनीक है।",
-        context: 'Education'
       },
       {
         english: "She learned to program on her father's computer.",
         hindi: "उसने अपने पिता के कंप्यूटर पर प्रोग्रामिंग सीखी।",
-        context: 'Learning'
       }
     ],
     'education': [
       {
         english: "Education is the key to success in life.",
         hindi: "शिक्षा जीवन में सफलता की कुंजी है।",
-        context: 'Philosophy'
       },
       {
         english: "The government is investing more in education this year.",
         hindi: "सरकार इस साल शिक्षा में अधिक निवेश कर रही है।",
-        context: 'Policy'
       },
       {
         english: "Online education has become very popular during the pandemic.",
         hindi: "महामारी के दौरान ऑनलाइन शिक्षा बहुत लोकप्रिय हो गई है।",
-        context: 'Modern'
       }
     ],
     'knowledge': [
       {
         english: "Knowledge is power, but wisdom is even more valuable.",
         hindi: "ज्ञान शक्ति है, लेकिन बुद्धि और भी मूल्यवान है।",
-        context: 'Philosophy'
       },
       {
         english: "She has extensive knowledge of ancient history.",
         hindi: "उसे प्राचीन इतिहास का व्यापक ज्ञान है।",
-        context: 'Academic'
       },
       {
         english: "Sharing knowledge with others helps everyone grow.",
         hindi: "दूसरों के साथ ज्ञान साझा करना सभी को बढ़ने में मदद करता है।",
-        context: 'Sharing'
       }
     ],
     'learning': [
       {
         english: "Learning never stops, even after graduation.",
         hindi: "स्नातक के बाद भी सीखना कभी नहीं रुकता।",
-        context: 'Lifelong'
       },
       {
         english: "The learning process can be challenging but rewarding.",
         hindi: "सीखने की प्रक्रिया चुनौतीपूर्ण हो सकती है लेकिन फायदेमंद भी।",
-        context: 'Process'
       },
       {
         english: "Active learning helps students retain information better.",
         hindi: "सक्रिय सीखना छात्रों को जानकारी को बेहतर तरीके से याद रखने में मदद करता है।",
-        context: 'Method'
       }
     ],
     'world': [
       {
         english: "The world is becoming more connected through technology.",
         hindi: "दुनिया तकनीक के माध्यम से अधिक जुड़ी हुई हो रही है।",
-        context: 'Global'
       },
       {
         english: "Traveling the world broadens your perspective on life.",
         hindi: "दुनिया की यात्रा करना जीवन के प्रति आपके दृष्टिकोण को व्यापक बनाता है।",
-        context: 'Travel'
       },
       {
         english: "The world's population continues to grow rapidly.",
         hindi: "दुनिया की जनसंख्या तेजी से बढ़ती जा रही है।",
-        context: 'Demographics'
       }
     ]
   };
@@ -439,12 +411,10 @@ function generateExamples(englishWord: string, hindiTranslation: string): WordEx
     {
       english: `The word "${englishWord}" is commonly used in English.`,
       hindi: `"${hindiTranslation}" शब्द हिंदी में आमतौर पर प्रयोग किया जाता है।`,
-      context: 'General usage'
     },
     {
       english: `Learning "${englishWord}" helps improve vocabulary.`,
       hindi: `"${hindiTranslation}" सीखना शब्दावली को बेहतर बनाने में मदद करता है।`,
-      context: 'Educational'
     }
   ];
 }

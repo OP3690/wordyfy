@@ -83,7 +83,7 @@ async function storeRelatedWords(wordsCollection: any, userId: string, meanings:
       
       // Get enhanced word details from Dictionary API
       const dictionaryData = await getWordDetails(word);
-      const enhancedData = dictionaryData ? extractEnhancedWordData(dictionaryData, wordDetails.hindiTranslation) : null;
+      const enhancedData = dictionaryData ? extractEnhancedWordData(dictionaryData, wordDetails.hindiTranslation || '') : null;
       
       // Determine if it's a synonym or antonym
       let relatedTo = 'synonym';
@@ -107,7 +107,7 @@ async function storeRelatedWords(wordsCollection: any, userId: string, meanings:
       // Create the related word entry
       const relatedWord = {
         englishWord: word,
-        translation: wordDetails.hindiTranslation,
+        translation: wordDetails.hindiTranslation || '',
         fromLanguage: 'en',
         toLanguage: 'hi',
         pronunciation: enhancedData?.pronunciation || '',
@@ -132,7 +132,7 @@ async function storeRelatedWords(wordsCollection: any, userId: string, meanings:
         audioUrl: enhancedData?.audioUrl,
         translationSource: wordDetails.translationSource,
         alternativeTranslations: wordDetails.alternativeTranslations,
-        hindiTranslation: wordDetails.hindiTranslation,
+        hindiTranslation: wordDetails.hindiTranslation || '',
       };
       
       relatedWords.push(relatedWord);
@@ -297,7 +297,7 @@ export async function POST(request: NextRequest) {
     // Get enhanced word details from Dictionary API
     const dictionaryData = await getWordDetails(cleanWord);
     console.log('Dictionary API response for', cleanWord, ':', dictionaryData);
-    const enhancedData = dictionaryData ? extractEnhancedWordData(dictionaryData, wordDetails.hindiTranslation) : null;
+    const enhancedData = dictionaryData ? extractEnhancedWordData(dictionaryData, wordDetails.hindiTranslation || '') : null;
     console.log('Enhanced data extracted:', enhancedData);
 
     // Automatically translate examples if meanings exist
@@ -319,7 +319,7 @@ export async function POST(request: NextRequest) {
     if (existingWord) {
       // Even for existing words, fetch enhanced data for popup display
       const dictionaryData = await getWordDetails(cleanWord);
-      const enhancedData = dictionaryData ? extractEnhancedWordData(dictionaryData, wordDetails.hindiTranslation) : null;
+      const enhancedData = dictionaryData ? extractEnhancedWordData(dictionaryData, wordDetails.hindiTranslation || '') : null;
       
       // Auto-translate examples for existing words too
       let translatedMeanings = enhancedData?.meanings;
@@ -357,9 +357,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Create new word with user context
-    const newWord: Word = {
+    const newWord: Omit<Word, '_id'> = {
       englishWord: cleanWord.toLowerCase(),
-      translation: wordDetails.hindiTranslation,
+      translation: wordDetails.hindiTranslation || '',
       fromLanguage: fromLanguage || 'en',
       toLanguage: toLanguage || 'hi',
       pronunciation: enhancedData?.pronunciation || wordDetails.pronunciation,
@@ -384,14 +384,14 @@ export async function POST(request: NextRequest) {
       // Translation metadata
       translationSource: wordDetails.translationSource,
       alternativeTranslations: wordDetails.alternativeTranslations,
-      hindiTranslation: wordDetails.hindiTranslation,
+      hindiTranslation: wordDetails.hindiTranslation || '',
     };
 
     // Save to MongoDB
     const result = await db.collection('words').insertOne(newWord);
 
     // Store all synonyms and antonyms as separate words for quiz functionality
-    await storeRelatedWords(db.collection('words'), userId, translatedMeanings);
+    await storeRelatedWords(db.collection('words'), userId, translatedMeanings || []);
 
     // Update popularity count for this word across all users
     await db.collection('words').updateMany(
@@ -417,7 +417,34 @@ export async function POST(request: NextRequest) {
           const wordDetails = await getComprehensiveWordDetails(cleanWord);
       
       if (wordDetails) {
-        const savedWord = saveWord(wordDetails);
+        const wordForStorage: Omit<Word, '_id'> = {
+          englishWord: cleanWord.toLowerCase(),
+          translation: wordDetails.hindiTranslation || '',
+          fromLanguage: 'en',
+          toLanguage: 'hi',
+          pronunciation: wordDetails.pronunciation || '',
+          partOfSpeech: wordDetails.partOfSpeech || 'noun',
+          createdAt: new Date(),
+          reviewCount: 0,
+          userId: 'fallback-user',
+          popularity: 1,
+          isPublic: true,
+          phonetics: [],
+          meanings: [{
+            partOfSpeech: wordDetails.partOfSpeech || 'noun',
+            definitions: [{
+              definition: `The word "${cleanWord}" means ${wordDetails.hindiTranslation || 'unknown'} in Hindi.`,
+              example: `Example: The ${cleanWord} option is now available.`,
+              synonyms: [],
+              antonyms: []
+            }]
+          }],
+          audioUrl: '',
+          translationSource: wordDetails.translationSource || 'fallback',
+          alternativeTranslations: wordDetails.alternativeTranslations || undefined,
+          hindiTranslation: wordDetails.hindiTranslation || '',
+        };
+        const savedWord = saveWord(wordForStorage);
         return NextResponse.json({ 
           success: true, 
           word: savedWord,
@@ -468,7 +495,7 @@ export async function PUT(request: NextRequest) {
     // Get enhanced word details from Dictionary API
     const dictionaryData = await getWordDetails(cleanWord);
     console.log('Dictionary API response for', cleanWord, ':', dictionaryData);
-    const enhancedData = dictionaryData ? extractEnhancedWordData(dictionaryData, wordDetails.hindiTranslation) : null;
+    const enhancedData = dictionaryData ? extractEnhancedWordData(dictionaryData, wordDetails.hindiTranslation || '') : null;
     console.log('Enhanced data extracted:', enhancedData);
 
     // Automatically translate examples if meanings exist
@@ -497,7 +524,7 @@ export async function PUT(request: NextRequest) {
       translation: wordDetails.hindiTranslation, // Fix: Update the main translation field
       translationSource: wordDetails.translationSource,
       alternativeTranslations: wordDetails.alternativeTranslations,
-      hindiTranslation: wordDetails.hindiTranslation,
+      hindiTranslation: wordDetails.hindiTranslation || '',
       updatedAt: new Date(),
     };
 
@@ -512,7 +539,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Store all synonyms and antonyms as separate words for quiz functionality
-    await storeRelatedWords(db.collection('words'), userId, translatedMeanings);
+    await storeRelatedWords(db.collection('words'), userId, translatedMeanings || []);
 
     console.log(`✅ Successfully updated word: ${cleanWord}`);
 

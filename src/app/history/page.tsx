@@ -195,9 +195,9 @@ export default function HistoryPage() {
                               {word.pronunciation}
                             </span>
                           )}
-                          {word.synonyms && word.synonyms.length > 0 && (
+                          {word.meanings?.[0]?.synonyms && word.meanings[0].synonyms.length > 0 && (
                             <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded-full">
-                              {word.synonyms.length} synonyms
+                              {word.meanings[0].synonyms.length} synonyms
                             </span>
                           )}
                         </div>
