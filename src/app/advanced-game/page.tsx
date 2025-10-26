@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { QuizQuestion } from '@/types/word';
+import { getUserSession, restoreSession } from '@/lib/auth';
 
 export default function AdvancedGame() {
   const [user, setUser] = useState<any>(null);
@@ -31,15 +32,19 @@ export default function AdvancedGame() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Check if user is logged in
-    const storedUser = localStorage.getItem('user');
-    const storedUserId = localStorage.getItem('userId');
+    // Try to restore session first (for mobile app reopening)
+    const sessionRestored = restoreSession();
     
-    if (storedUser && storedUserId) {
-      setUser(JSON.parse(storedUser));
+    // Use persistent login system
+    const { user: userData, userId: storedUserId, rememberMe } = getUserSession();
+    
+    if (userData && storedUserId) {
+      console.log('🔐 User session found:', rememberMe ? 'persistent' : 'session');
+      setUser(userData);
       setUserId(storedUserId);
       checkAccess();
     } else {
+      console.log('🔐 No valid session found, redirecting to login');
       // Redirect to login if not authenticated
       window.location.href = '/login';
     }
@@ -50,7 +55,7 @@ export default function AdvancedGame() {
       setLoading(true);
       const fromLanguage = user?.fromLanguage || 'en';
       const toLanguage = user?.toLanguage || 'hi';
-      const currentUserId = userId || localStorage.getItem('userId');
+      const currentUserId = userId || '';
       const response = await fetch(`/api/advanced-game?fromLanguage=${fromLanguage}&toLanguage=${toLanguage}&userId=${currentUserId}`);
       const data = await response.json();
       
@@ -294,7 +299,7 @@ function ClassicQuiz({ user, userId, accessLevel, userWordCount }: any) {
       setLoading(true);
       const fromLanguage = user?.fromLanguage || 'en';
       const toLanguage = user?.toLanguage || 'hi';
-      const currentUserId = userId || localStorage.getItem('userId');
+      const currentUserId = userId || '';
       const response = await fetch(`/api/advanced-game?fromLanguage=${fromLanguage}&toLanguage=${toLanguage}&userId=${currentUserId}`);
       const data = await response.json();
       
@@ -642,7 +647,7 @@ function WordBuilder({ user, userId, accessLevel, userWordCount }: any) {
       setLoading(true);
       const fromLanguage = user?.fromLanguage || 'en';
       const toLanguage = user?.toLanguage || 'hi';
-      const currentUserId = userId || localStorage.getItem('userId');
+      const currentUserId = userId || '';
       const response = await fetch(`/api/advanced-game?fromLanguage=${fromLanguage}&toLanguage=${toLanguage}&userId=${currentUserId}`);
       const data = await response.json();
       
@@ -900,7 +905,7 @@ function WordyStreakTower({ user, userId, accessLevel, userWordCount }: any) {
       setLoading(true);
       const fromLanguage = user?.fromLanguage || 'en';
       const toLanguage = user?.toLanguage || 'hi';
-      const currentUserId = userId || localStorage.getItem('userId');
+      const currentUserId = userId || '';
       const response = await fetch(`/api/advanced-game?fromLanguage=${fromLanguage}&toLanguage=${toLanguage}&userId=${currentUserId}`);
       const data = await response.json();
       

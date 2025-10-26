@@ -7,8 +7,7 @@ import {
   BookOpen, Play, Pause, MoreVertical, Heart, Share
 } from 'lucide-react';
 import Link from 'next/link';
-import { getStoredWords } from '@/lib/storage';
-import { Word } from '@/types/word';
+import { getUserSession, restoreSession } from '@/lib/auth';
 
 export default function VaultPage() {
   const [words, setWords] = useState<Word[]>([]);
@@ -26,22 +25,20 @@ export default function VaultPage() {
   useEffect(() => {
     setMounted(true);
     
-    const storedUser = localStorage.getItem('user');
-    const storedUserId = localStorage.getItem('userId');
+    // Try to restore session first (for mobile app reopening)
+    const sessionRestored = restoreSession();
     
-    if (storedUser && storedUserId) {
-      try {
-        const userData = JSON.parse(storedUser);
-        setUser(userData);
-        setUserId(storedUserId);
-        loadUserWords(storedUserId);
-      } catch (error) {
-        console.error('Error parsing user data:', error);
-        localStorage.removeItem('user');
-        localStorage.removeItem('userId');
-        window.location.href = '/login';
-      }
+    // Use persistent login system
+    const { user: userData, userId: storedUserId, rememberMe } = getUserSession();
+    
+    if (userData && storedUserId) {
+      console.log('🔐 User session found:', rememberMe ? 'persistent' : 'session');
+      setUser(userData);
+      setUserId(storedUserId);
+      loadUserWords(storedUserId);
     } else {
+      console.log('🔐 No valid session found, redirecting to login');
+      // No valid session found, redirect to login
       window.location.href = '/login';
     }
   }, []);
