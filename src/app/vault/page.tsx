@@ -59,12 +59,8 @@ export default function VaultPage() {
       setCurrentPage(1);
     } catch (error) {
       console.error('Error loading user words:', error);
-      const storedWords = getStoredWords();
-      const sortedWords = storedWords.sort((a, b) => 
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      );
-      setWords(sortedWords);
-      setFilteredWords(sortedWords);
+      setWords([]);
+      setFilteredWords([]);
       setCurrentPage(1);
     } finally {
       setIsLoading(false);
