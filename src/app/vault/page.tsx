@@ -124,7 +124,7 @@ export default function VaultPage() {
       filtered = filtered.filter((word) => {
         const wordId = word._id ? String(word._id) : '';
         const card = srs.getCard(wordId);
-        if (!card) return srsFilter === 'all';
+        if (!card) return false;
         if (srsFilter === 'due') return card.dueDate <= today;
         if (srsFilter === 'learning') return card.repetitions < 7;
         if (srsFilter === 'mastered') return card.repetitions >= 7;
