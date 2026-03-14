@@ -5,7 +5,7 @@ import Script from "next/script";
 const GA_ID =
   process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID ||
   process.env.NEXT_PUBLIC_GA_ID ||
-  "G-XXXXXXXXXX";
+  "G-8PNL37Z6R8";
 
 declare global {
   interface Window {
