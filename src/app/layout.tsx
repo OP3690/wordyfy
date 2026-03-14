@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Analytics from "@/components/Analytics";
+import { StreakProvider } from "@/components/StreakProvider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -82,7 +83,7 @@ export const metadata: Metadata = {
     canonical: APP_URL,
   },
   verification: {
-    google: "REPLACE_WITH_YOUR_GOOGLE_SEARCH_CONSOLE_TOKEN",
+    google: "A4IlZuk-NL5aixe0xQ9Vr-X1ALt4IyXn4j5EoUAsiWY",
   },
   appleWebApp: {
     capable: true,
@@ -178,15 +179,11 @@ export default function RootLayout({
         <script
           dangerouslySetInnerHTML={{
             __html: `
-              if ('serviceWorker' in navigator) {
+              if ('serviceWorker' in navigator && !/localhost|127\\.0\\.0\\.1/.test(location.hostname)) {
                 window.addEventListener('load', function() {
                   navigator.serviceWorker.register('/sw.js')
-                    .then(function(registration) {
-                      console.log('SW registered: ', registration);
-                    })
-                    .catch(function(registrationError) {
-                      console.log('SW registration failed: ', registrationError);
-                    });
+                    .then(function(registration) { console.log('SW registered: ', registration); })
+                    .catch(function(err) { console.log('SW registration failed: ', err); });
                 });
               }
             `,
@@ -194,8 +191,10 @@ export default function RootLayout({
         />
       </head>
       <body className={`${inter.variable} font-sans antialiased`}>
-        <Analytics />
-        {children}
+        <StreakProvider>
+          <Analytics />
+          {children}
+        </StreakProvider>
       </body>
     </html>
   );

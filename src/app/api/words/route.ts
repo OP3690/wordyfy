@@ -406,6 +406,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create new word with user context
+    const now = new Date();
     const newWord: Omit<Word, '_id'> = {
       englishWord: cleanWord.toLowerCase(),
       translation: wordDetails.hindiTranslation || '',
@@ -413,8 +414,12 @@ export async function POST(request: NextRequest) {
       toLanguage: toLanguage || 'hi',
       pronunciation: enhancedData?.pronunciation || wordDetails.pronunciation,
       partOfSpeech: enhancedData?.partOfSpeech || wordDetails.partOfSpeech,
-      createdAt: new Date(),
+      createdAt: now,
       reviewCount: 0,
+      nextReviewAt: now,
+      sm2Interval: 0,
+      sm2EaseFactor: 2.5,
+      sm2Repetitions: 0,
       userId,
       popularity: 1,
       isPublic: true,

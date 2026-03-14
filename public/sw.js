@@ -25,13 +25,19 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Fetch: cache-first for same-origin GET (pages/static), network-first for API
+// Fetch: never cache _next (chunks/assets); cache-first for app pages; network-first for API
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
   const sameOrigin = url.origin === self.location.origin;
   const isApi = url.pathname.startsWith('/api/');
+  const isNextStatic = url.pathname.startsWith('/_next/');
 
   if (!sameOrigin || event.request.method !== 'GET') {
+    event.respondWith(fetch(event.request));
+    return;
+  }
+  // Always fetch Next.js chunks/static from network (avoid serving HTML 404 as script)
+  if (isNextStatic) {
     event.respondWith(fetch(event.request));
     return;
   }

@@ -44,6 +44,11 @@ export interface Word {
   quizAppearances?: number; // How many times this word has appeared in quizzes
   quizCorrectAnswers?: number; // How many times this word was answered correctly
   quizAccuracy?: number; // Accuracy percentage for this word (0-100)
+  // Spaced repetition (SM-2)
+  nextReviewAt?: Date;
+  sm2Interval?: number;
+  sm2EaseFactor?: number;
+  sm2Repetitions?: number;
 }
 
 export interface WordDefinition {

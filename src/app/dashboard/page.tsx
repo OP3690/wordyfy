@@ -7,13 +7,18 @@ import {
   Award, Brain, ArrowRight, Star, Users, Target, X, Save, Flame, Bell
 } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { saveWord, getStoredWords } from '@/lib/storage';
 import { Word } from '@/types/word';
 import InstallPrompt from '@/components/InstallPrompt';
 import { getUserSession, clearUserSession, restoreSession } from '@/lib/auth';
 import { StreakMilestoneModal, useStreakMilestone } from '@/components/StreakSystem';
+import SmartReminder, { setReminderTime } from '@/components/SmartReminder';
+import StreakBadge from '@/components/StreakBadge';
+import AtRiskBanner from '@/components/AtRiskBanner';
 
 export default function Dashboard() {
+  const router = useRouter();
   const [word, setWord] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
@@ -52,6 +57,7 @@ export default function Dashboard() {
   });
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default');
   const [streakReminderDismissed, setStreakReminderDismissed] = useState(false);
+  const [reminderTime, setReminderTimeState] = useState<string>('09:00');
   const { showMilestone, dismissMilestone } = useStreakMilestone(quizStats.currentStreak);
 
 
@@ -268,33 +274,34 @@ export default function Dashboard() {
 
   useEffect(() => {
     setMounted(true);
-    
-    // Try to restore session first (for mobile app reopening)
-    const sessionRestored = restoreSession();
-    
-    // Use persistent login system
-    const { user: userData, userId: storedUserId, rememberMe } = getUserSession();
-    
-    if (userData && storedUserId) {
-      console.log('🔐 User session found:', rememberMe ? 'persistent' : 'session');
-      setUser(userData);
-      setUserId(storedUserId);
-      loadUserWords(storedUserId);
-      loadQuizStats(storedUserId);
-    } else {
-      console.log('🔐 No valid session found, redirecting to login');
-      // No valid session found, redirect to login
-      window.location.href = '/login';
-    }
-    
-    setMessage('');
+
+    // Defer session check so storage is ready after full-page redirect from login
+    const id = setTimeout(() => {
+      restoreSession();
+      const { user: userData, userId: storedUserId, rememberMe } = getUserSession();
+
+      if (userData && storedUserId) {
+        console.log('🔐 User session found:', rememberMe ? 'persistent' : 'session');
+        setUser(userData);
+        setUserId(storedUserId);
+        loadUserWords(storedUserId);
+        loadQuizStats(storedUserId);
+      } else {
+        console.log('🔐 No valid session found, redirecting to login');
+        window.location.href = '/login';
+      }
+      setMessage('');
+    }, 0);
+
+    return () => clearTimeout(id);
   }, []);
 
-  // Sync notification permission on mount (client-only)
+  // Sync notification permission and reminder time on mount (client-only)
   useEffect(() => {
-    if (typeof window !== 'undefined' && 'Notification' in window) {
-      setNotificationPermission(Notification.permission);
-    }
+    if (typeof window === 'undefined') return;
+    if ('Notification' in window) setNotificationPermission(Notification.permission);
+    const stored = localStorage.getItem('wordyfy_reminder_time');
+    if (stored) setReminderTimeState(stored);
   }, []);
 
   // Refresh quiz stats when returning from quiz or page becomes visible
@@ -513,17 +520,19 @@ export default function Dashboard() {
     }
   }, [showSuggestions]);
 
-  if (!mounted) {
-  return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-12 h-12 bg-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-4 animate-pulse">
-            <Brain className="h-6 w-6 text-white" />
-      </div>
-          <p className="text-gray-600 text-sm">Loading...</p>
+  const loadingEl = (
+    <div className="min-h-screen bg-white flex items-center justify-center" style={{ minHeight: '100vh', background: '#fff' }}>
+      <div className="text-center">
+        <div className="w-12 h-12 bg-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-4 animate-pulse" style={{ backgroundColor: '#3b82f6' }}>
+          <Brain className="h-6 w-6 text-white" />
         </div>
+        <p className="text-gray-600 text-sm" style={{ color: '#4b5563' }}>Loading...</p>
       </div>
-    );
+    </div>
+  );
+
+  if (!mounted || !userId) {
+    return loadingEl;
   }
 
   return (
@@ -535,19 +544,25 @@ export default function Dashboard() {
             <div>
               <h1 className="text-lg font-semibold text-gray-900">WordyFy</h1>
               <p className="text-xs text-gray-500">Learn English Words</p>
-              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <StreakBadge size="sm" onClick={() => router.push('/quiz')} />
               <button
                 onClick={handleLogout}
-              className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
               >
                 <LogOut className="h-5 w-5" />
               </button>
+            </div>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
       <main className="pb-20">
+        <div className="px-4 pt-4">
+          <AtRiskBanner onAction={() => router.push('/quiz')} />
+        </div>
         {/* Quick Stats - Enhanced with Quiz Stats */}
         <div className="px-4 py-4">
           {/* Word Stats */}
@@ -622,31 +637,63 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* Notification permission prompt for streak reminders */}
-          {typeof window !== 'undefined' && 'Notification' in window && notificationPermission === 'default' && (
-            <div className="mt-4 p-3 bg-blue-50 rounded-xl border border-blue-200 flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2 min-w-0">
-                <Bell className="h-4 w-4 text-blue-600 shrink-0" />
-                <p className="text-xs text-gray-700">Get reminded to practice and protect your streak.</p>
-              </div>
-              <button
-                type="button"
-                onClick={async () => {
-                  const perm = await Notification.requestPermission();
-                  setNotificationPermission(perm);
-                  if (perm === 'granted' && !document.hidden) {
-                    new Notification('WordyFy', {
-                      body: "You're all set! We'll remind you when it's time to practice.",
-                      icon: '/puzzle_icon.png'
-                    });
-                  }
-                }}
-                className="px-3 py-1.5 bg-blue-500 text-white text-xs font-medium rounded-lg hover:bg-blue-600 shrink-0"
-              >
-                Enable
-              </button>
+          {/* Notification permission + smart reminder time */}
+          {typeof window !== 'undefined' && 'Notification' in window && (
+            <div className="mt-4 space-y-2">
+              {notificationPermission === 'default' && (
+                <div className="p-3 bg-blue-50 rounded-xl border border-blue-200 flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Bell className="h-4 w-4 text-blue-600 shrink-0" />
+                    <p className="text-xs text-gray-700">Get reminded to practice and protect your streak.</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      const perm = await Notification.requestPermission();
+                      setNotificationPermission(perm);
+                      if (perm === 'granted') {
+                        setReminderTime(reminderTime);
+                        if (!document.hidden) {
+                          new Notification('WordyFy', {
+                            body: "You're all set! We'll remind you when it's time to practice.",
+                            icon: '/puzzle_icon.png'
+                          });
+                        }
+                      }
+                    }}
+                    className="px-3 py-1.5 bg-blue-500 text-white text-xs font-medium rounded-lg hover:bg-blue-600 shrink-0"
+                  >
+                    Enable
+                  </button>
+                </div>
+              )}
+              {notificationPermission === 'granted' && (
+                <div className="p-3 bg-blue-50/50 rounded-xl border border-blue-200 flex flex-wrap items-center gap-2">
+                  <Bell className="h-4 w-4 text-blue-600 shrink-0" />
+                  <span className="text-xs text-gray-700">Remind me daily at</span>
+                  <input
+                    type="time"
+                    value={reminderTime}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setReminderTimeState(v);
+                      setReminderTime(v);
+                    }}
+                    className="text-sm border border-gray-200 rounded-lg px-2 py-1"
+                  />
+                </div>
+              )}
             </div>
           )}
+
+          <SmartReminder
+            hasPracticedToday={
+              quizStats.lastQuizDate
+                ? new Date(quizStats.lastQuizDate).toDateString() === new Date().toDateString()
+                : false
+            }
+            notificationPermission={notificationPermission}
+          />
             </div>
 
         {/* Add Word Section - Minimal */}

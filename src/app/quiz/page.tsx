@@ -10,8 +10,10 @@ import Link from 'next/link';
 import { QuizQuestion } from '@/types/word';
 import { trackQuizCompleted } from '@/lib/analytics';
 import ShareCard from '@/components/ShareCard';
+import { useStreak } from '@/lib/useStreak';
 
 export default function QuizPage() {
+  const { markComplete } = useStreak();
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
@@ -239,6 +241,10 @@ export default function QuizPage() {
       setGameCompleted(true);
       setAllWordsCompleted(true);
       saveQuizStats(score, questions.length, formattedQuestions, resultFlags);
+      const { milestoneHit, freezeEarned } = markComplete();
+      if (freezeEarned > 0) {
+        console.log(`+${freezeEarned} streak freeze earned!`);
+      }
     }
   };
 

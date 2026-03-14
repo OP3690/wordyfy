@@ -1,14 +1,27 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { 
-  ArrowLeft, Search, Volume2, ChevronDown, ChevronUp, 
-  Calendar, Star, Users, Filter, SortAsc, SortDesc,
-  BookOpen, Play, Pause, MoreVertical, Heart, Share
-} from 'lucide-react';
+import { ArrowLeft, Search, Calendar, Users, Filter, SortAsc, SortDesc, BookOpen } from 'lucide-react';
 import Link from 'next/link';
 import { getUserSession, restoreSession } from '@/lib/auth';
 import { Word } from '@/types/word';
+import { useSRS } from '@/lib/useSRS';
+import VaultCard from '@/components/VaultCard';
+
+function wordToVaultData(w: Word): { id: string; word: string; meaning: string; hindi: string; partOfSpeech: string } {
+  const id = w._id ? String(w._id) : '';
+  const meaning =
+    (w.meanings?.[0]?.definitions?.[0]?.definition as string) ||
+    (w as unknown as { definition?: string }).definition ||
+    'No definition';
+  return {
+    id,
+    word: w.englishWord.charAt(0).toUpperCase() + w.englishWord.slice(1),
+    meaning,
+    hindi: w.translation || (w as Word & { hindiTranslation?: string }).hindiTranslation || '—',
+    partOfSpeech: w.partOfSpeech || w.meanings?.[0]?.partOfSpeech || 'noun',
+  };
+}
 
 export default function VaultPage() {
   const [words, setWords] = useState<Word[]>([]);
@@ -19,9 +32,10 @@ export default function VaultPage() {
   const [userId, setUserId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [wordsPerPage] = useState(12);
-  const [expandedWords, setExpandedWords] = useState<Set<string>>(new Set());
   const [sortOrder, setSortOrder] = useState<'default' | 'a-z' | 'z-a' | 'recent' | 'popular'>('default');
   const [isLoading, setIsLoading] = useState(true);
+  const [srsFilter, setSrsFilter] = useState<'all' | 'due' | 'learning' | 'mastered'>('all');
+  const srs = useSRS();
 
   useEffect(() => {
     setMounted(true);
@@ -68,46 +82,59 @@ export default function VaultPage() {
   };
 
   useEffect(() => {
+    const today = new Date().toISOString().split('T')[0];
     let filtered = words;
-    
+
     if (searchTerm) {
-      filtered = words.filter(word => 
+      filtered = words.filter(word =>
         word.englishWord.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (word.translation || word.hindiTranslation || '').toLowerCase().includes(searchTerm.toLowerCase())
+        (word.translation || (word as Word & { hindiTranslation?: string }).hindiTranslation || '').toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
-    
+
     if (sortOrder === 'default') {
       filtered = [...filtered].sort((a, b) => {
         const aIsAuto = (a as any).isRelatedWord === true;
         const bIsAuto = (b as any).isRelatedWord === true;
-        
+
         if (aIsAuto && !bIsAuto) return 1;
         if (!aIsAuto && bIsAuto) return -1;
-        
+
         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       });
     } else if (sortOrder === 'a-z') {
-      filtered = [...filtered].sort((a, b) => 
+      filtered = [...filtered].sort((a, b) =>
         a.englishWord.toLowerCase().localeCompare(b.englishWord.toLowerCase())
       );
     } else if (sortOrder === 'z-a') {
-      filtered = [...filtered].sort((a, b) => 
+      filtered = [...filtered].sort((a, b) =>
         b.englishWord.toLowerCase().localeCompare(a.englishWord.toLowerCase())
       );
     } else if (sortOrder === 'recent') {
-      filtered = [...filtered].sort((a, b) => 
+      filtered = [...filtered].sort((a, b) =>
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
     } else if (sortOrder === 'popular') {
-      filtered = [...filtered].sort((a, b) => 
+      filtered = [...filtered].sort((a, b) =>
         (b.popularity || 0) - (a.popularity || 0)
       );
     }
-    
+
+    if (srsFilter !== 'all' && today) {
+      filtered = filtered.filter((word) => {
+        const wordId = word._id ? String(word._id) : '';
+        const card = srs.getCard(wordId);
+        if (!card) return srsFilter === 'all';
+        if (srsFilter === 'due') return card.dueDate <= today;
+        if (srsFilter === 'learning') return card.repetitions < 7;
+        if (srsFilter === 'mastered') return card.repetitions >= 7;
+        return true;
+      });
+    }
+
     setFilteredWords(filtered);
     setCurrentPage(1);
-  }, [searchTerm, words, sortOrder]);
+  }, [searchTerm, words, sortOrder, srsFilter, srs.cards]);
 
   const totalPages = Math.ceil(filteredWords.length / wordsPerPage);
   const startIndex = (currentPage - 1) * wordsPerPage;
@@ -119,53 +146,6 @@ export default function VaultPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const playPronunciation = (word: string, isHindi: boolean = false) => {
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance(word);
-      utterance.lang = isHindi ? 'hi-IN' : 'en-US';
-      utterance.rate = 0.8;
-      utterance.pitch = 1.1;
-      utterance.volume = 1.0;
-      
-      const voices = speechSynthesis.getVoices();
-      let femaleVoice;
-      
-      if (isHindi) {
-        femaleVoice = voices.find(voice => 
-          voice.lang.startsWith('hi') && 
-          (voice.name.toLowerCase().includes('female') || 
-           voice.name.toLowerCase().includes('woman'))
-        ) || voices.find(voice => voice.lang.startsWith('hi'));
-      } else {
-        femaleVoice = voices.find(voice => 
-          voice.lang.startsWith('en') && 
-          (voice.name.toLowerCase().includes('female') || 
-           voice.name.toLowerCase().includes('woman') ||
-           voice.name.toLowerCase().includes('samantha'))
-        );
-      }
-      
-      if (femaleVoice) {
-        utterance.voice = femaleVoice;
-      }
-      
-      speechSynthesis.speak(utterance);
-    }
-  };
-
-  const toggleWordExpansion = (wordId: string) => {
-    const newExpanded = new Set(expandedWords);
-    if (newExpanded.has(wordId)) {
-      // If the word is already expanded, collapse it
-      newExpanded.delete(wordId);
-    } else {
-      // If expanding a new word, clear all others first (accordion behavior)
-      newExpanded.clear();
-      newExpanded.add(wordId);
-    }
-    setExpandedWords(newExpanded);
-  };
-
   const getSortIcon = () => {
     switch (sortOrder) {
       case 'a-z': return <SortAsc className="h-4 w-4" />;
@@ -173,16 +153,6 @@ export default function VaultPage() {
       case 'recent': return <Calendar className="h-4 w-4" />;
       case 'popular': return <Users className="h-4 w-4" />;
       default: return <Filter className="h-4 w-4" />;
-    }
-  };
-
-  const getSortLabel = () => {
-    switch (sortOrder) {
-      case 'a-z': return 'A-Z';
-      case 'z-a': return 'Z-A';
-      case 'recent': return 'Recent';
-      case 'popular': return 'Popular';
-      default: return 'Default';
     }
   };
 
@@ -242,7 +212,52 @@ export default function VaultPage() {
         </div>
       </div>
 
-      {/* Words List - Native App Style */}
+      {/* SRS stats row */}
+      <div className="px-4 py-3 bg-white border-b border-gray-100">
+        <div className="grid grid-cols-4 gap-2 mb-3">
+          {[
+            ['Due today', srs.dueCount, srs.dueCount > 0 ? '#6C47FF' : undefined],
+            ['In SRS', srs.totalCards, undefined],
+            ['Mastered', srs.masteredCards.length, '#10b981'],
+            ['Next 7d', srs.upcoming.reduce((s, u) => s + u.count, 0), undefined],
+          ].map(([label, value, color]) => (
+            <div key={String(label)} className="bg-gray-50 rounded-lg py-2.5 px-3">
+              <div className="text-lg font-medium" style={color ? { color } : undefined}>{value}</div>
+              <div className="text-xs text-gray-500 mt-0.5">{label}</div>
+            </div>
+          ))}
+        </div>
+        {srs.dueCount > 0 && (
+          <Link
+            href="/vault/review"
+            className="flex items-center justify-between w-full px-4 py-3 bg-[#6C47FF] text-white rounded-xl font-medium no-underline hover:opacity-95 transition-opacity"
+          >
+            <div>
+              <span className="text-sm font-semibold">Start today&apos;s review</span>
+              <p className="text-xs text-white/80">{srs.dueCount} word{srs.dueCount !== 1 ? 's' : ''} due</p>
+            </div>
+            <span className="text-xl">→</span>
+          </Link>
+        )}
+        <div className="flex gap-1 mt-3 p-1 bg-gray-100 rounded-lg">
+          {(['all', 'due', 'learning', 'mastered'] as const).map((f) => (
+            <button
+              key={f}
+              type="button"
+              onClick={() => setSrsFilter(f)}
+              className={`flex-1 py-1.5 rounded-md text-xs font-medium transition-all ${
+                srsFilter === f
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              {f.charAt(0).toUpperCase() + f.slice(1)}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Words List - VaultCard SRS (spec) */}
       {filteredWords.length === 0 ? (
         <div className="flex-1 flex items-center justify-center py-20">
           <div className="text-center">
@@ -263,225 +278,22 @@ export default function VaultPage() {
         </div>
       ) : (
         <div className="pb-20">
-          {/* Words Grid - Compact */}
-          <div className="px-4 py-2">
-            {currentWords.map((word, index) => {
-              const isExpanded = expandedWords.has(word._id || index.toString());
-              const wordId = word._id || index.toString();
-              const isAutoWord = (word as any).isRelatedWord === true;
-              
+          {/* SRS Vault cards (spec) */}
+          <div className="px-4 py-2 flex flex-col gap-3">
+            {currentWords.map((word) => {
+              const wordId = word._id ? String(word._id) : '';
+              if (!wordId) return null;
               return (
-                <div key={wordId} className="mb-2">
-                  {/* Main Word Card - Minimal */}
-                  <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3 flex-1">
-                        {/* Word Avatar - Small */}
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                          isAutoWord ? 'bg-orange-100' : 'bg-blue-100'
-                        }`}>
-                          <span className="text-sm font-semibold text-gray-700">
-                            {word.englishWord.charAt(0).toUpperCase()}
-                          </span>
-                        </div>
-                        
-                        {/* Word Content - Compact */}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center space-x-2 mb-1">
-                            <h3 className="text-base font-semibold text-gray-900 truncate">
-                              {word.englishWord.charAt(0).toUpperCase() + word.englishWord.slice(1)}
-                            </h3>
-                            <span className={`px-2 py-0.5 text-xs font-medium rounded-md ${
-                              isAutoWord ? 'bg-orange-100 text-orange-700' : 'bg-green-100 text-green-700'
-                            }`}>
-                              {isAutoWord ? 'Auto' : 'User'}
-                            </span>
-                          </div>
-                          <p className="text-sm text-gray-600 truncate">
-                            {word.translation || word.hindiTranslation || 'No translation'}
-                          </p>
-                          <div className="flex items-center space-x-3 mt-1">
-                            <div className="flex items-center space-x-1">
-                              <Calendar className="h-3 w-3 text-gray-400" />
-                              <span className="text-xs text-gray-500">
-                                {new Date(word.createdAt).toLocaleDateString('en-GB')}
-                              </span>
-                            </div>
-                            <div className="flex items-center space-x-1">
-                              <Star className="h-3 w-3 text-gray-400" />
-                              <span className="text-xs text-gray-500">{word.reviewCount}</span>
-                            </div>
-                            {/* Quiz Stats */}
-                            {(word.quizAppearances && word.quizAppearances > 0) && (
-                              <>
-                                <div className="flex items-center space-x-1">
-                                  <div className="h-3 w-3 bg-blue-100 rounded-full flex items-center justify-center">
-                                    <span className="text-xs font-semibold text-blue-600">Q</span>
-                                  </div>
-                                  <span className="text-xs text-gray-500">{word.quizAppearances}</span>
-                                </div>
-                                <div className="flex items-center space-x-1">
-                                  <div className="h-3 w-3 bg-green-100 rounded-full flex items-center justify-center">
-                                    <span className="text-xs font-semibold text-green-600">%</span>
-                                  </div>
-                                  <span className="text-xs text-gray-500">{word.quizAccuracy || 0}%</span>
-                                </div>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* Actions - Minimal */}
-                      <div className="flex items-center space-x-1">
-                        <button
-                          onClick={() => playPronunciation(word.englishWord, false)}
-                          className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                        >
-                          <Volume2 className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={() => toggleWordExpansion(wordId)}
-                          className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                        >
-                          {isExpanded ? (
-                            <ChevronUp className="h-4 w-4" />
-                          ) : (
-                            <ChevronDown className="h-4 w-4" />
-                          )}
-                        </button>
-                      </div>
-                    </div>
-                    
-                    {/* Expanded Details - Enhanced */}
-                    {isExpanded && (
-                      <div className="mt-4 pt-4 border-t border-gray-100">
-                        <div className="space-y-4">
-                          {/* All Meanings - Enhanced */}
-                          {word.meanings && word.meanings.length > 0 && (
-                            <div className="space-y-4">
-                              {word.meanings.map((meaning: any, meaningIndex: number) => (
-                                <div key={meaningIndex} className="space-y-3">
-                                  {/* Part of Speech */}
-                                  <div className="flex items-center space-x-2">
-                                    <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-lg">
-                                      {meaning.partOfSpeech}
-                                    </span>
-                                  </div>
-                                  
-                                  {/* All Definitions */}
-                                  {meaning.definitions.map((def: any, defIndex: number) => (
-                                    <div key={defIndex} className="space-y-2">
-                                      <p className="text-sm text-gray-800 leading-relaxed font-medium">
-                                        {defIndex + 1}. {def.definition}
-                                      </p>
-                                      
-                                      {/* Examples */}
-                                      {def.example && (
-                                        <div className="bg-gray-50 rounded-lg p-3 border-l-4 border-blue-200">
-                                          <div className="flex items-start space-x-2">
-                                            <div className="w-2 h-2 bg-blue-400 rounded-full mt-2 flex-shrink-0"></div>
-                                            <div className="flex-1">
-                                              <p className="text-sm text-gray-700 italic mb-1">
-                                                <span className="font-semibold text-gray-600">Example:</span> {def.example}
-                                              </p>
-                                              {def.hindiExample && (
-                                                <p className="text-xs text-gray-600 italic">
-                                                  <span className="font-semibold text-gray-500">Hindi:</span> {def.hindiExample}
-                                                </p>
-                                              )}
-                                            </div>
-                                          </div>
-                                        </div>
-                                      )}
-                                    </div>
-                                  ))}
-                                  
-                                  {/* Synonyms and Antonyms - Enhanced */}
-                                  <div className="space-y-3">
-                                    {meaning.synonyms && meaning.synonyms.length > 0 && (
-                                      <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-3 border border-green-200">
-                                        <div className="flex items-center space-x-2 mb-2">
-                                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                                          <h6 className="text-sm font-semibold text-green-700">Synonyms</h6>
-                                        </div>
-                                        <div className="flex flex-wrap gap-2">
-                                          {meaning.synonyms.map((synonym: any, synIndex: number) => (
-                                            <div key={synIndex} className="flex flex-col items-center">
-                                              <span className="px-3 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full border border-green-200 hover:bg-green-200 transition-colors">
-                                                {typeof synonym === 'string' ? synonym.charAt(0).toUpperCase() + synonym.slice(1) : synonym.english?.charAt(0).toUpperCase() + synonym.english?.slice(1)}
-                                              </span>
-                                              {(typeof synonym === 'object' && synonym.hindi) && (
-                                                <span className="text-xs text-gray-600 mt-1 text-center">
-                                                  {synonym.hindi}
-                                                </span>
-                                              )}
-                                            </div>
-                                          ))}
-                                        </div>
-                                      </div>
-                                    )}
-                                    
-                                    {meaning.antonyms && meaning.antonyms.length > 0 && (
-                                      <div className="bg-gradient-to-r from-red-50 to-rose-50 rounded-lg p-3 border border-red-200">
-                                        <div className="flex items-center space-x-2 mb-2">
-                                          <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                                          <h6 className="text-sm font-semibold text-red-700">Antonyms</h6>
-                                        </div>
-                                        <div className="flex flex-wrap gap-2">
-                                          {meaning.antonyms.map((antonym: any, antIndex: number) => (
-                                            <div key={antIndex} className="flex flex-col items-center">
-                                              <span className="px-3 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full border border-red-200 hover:bg-red-200 transition-colors">
-                                                {typeof antonym === 'string' ? antonym.charAt(0).toUpperCase() + antonym.slice(1) : antonym.english?.charAt(0).toUpperCase() + antonym.english?.slice(1)}
-                                              </span>
-                                              {(typeof antonym === 'object' && antonym.hindi) && (
-                                                <span className="text-xs text-gray-600 mt-1 text-center">
-                                                  {antonym.hindi}
-                                                </span>
-                                              )}
-                                            </div>
-                                          ))}
-                                        </div>
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                          
-                          {/* Pronunciation Details */}
-                          {word.phonetics && word.phonetics.length > 0 && (
-                            <div className="bg-purple-50 rounded-lg p-3 border border-purple-200">
-                              <div className="flex items-center space-x-2 mb-2">
-                                <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                                <h6 className="text-sm font-semibold text-purple-700">Pronunciation</h6>
-                              </div>
-                              <div className="space-y-1">
-                                {word.phonetics.map((phonetic: any, index: number) => (
-                                  <div key={index} className="flex items-center space-x-2">
-                                    <span className="text-sm text-purple-800 font-mono">{phonetic.text}</span>
-                                    {phonetic.audio && (
-                                      <button
-                                        onClick={() => {
-                                          const audio = new Audio(phonetic.audio);
-                                          audio.play().catch(() => {});
-                                        }}
-                                        className="p-1 text-purple-600 hover:text-purple-800 hover:bg-purple-100 rounded transition-colors"
-                                      >
-                                        <Volume2 className="h-3 w-3" />
-                                      </button>
-                                    )}
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
+                <VaultCard
+                  key={wordId}
+                  word={wordToVaultData(word)}
+                  card={srs.getCard(wordId)}
+                  onAdd={srs.addWord}
+                  onRemove={srs.removeWord}
+                  onReview={(id) => {
+                    window.location.href = `/vault/review?word=${id}`;
+                  }}
+                />
               );
             })}
           </div>

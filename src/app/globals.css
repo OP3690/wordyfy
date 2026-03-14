@@ -12,6 +12,21 @@
   --success: #10b981;
   --warning: #f59e0b;
   --error: #ef4444;
+  /* SRS / app surfaces */
+  --color-background-primary: #ffffff;
+  --color-background-secondary: #f3f4f6;
+  --color-background-tertiary: #e5e7eb;
+  --color-text-primary: #111827;
+  --color-text-secondary: #6b7280;
+  --color-text-tertiary: #9ca3af;
+  --color-text-warning: #b45309;
+  --color-border-secondary: #e5e7eb;
+  --color-border-tertiary: #d1d5db;
+  --color-border-warning: #fcd34d;
+  --color-background-warning: #fef3c7;
+  --border-radius-md: 8px;
+  --border-radius-lg: 12px;
+  --border-radius-xl: 16px;
 }
 
 @media (prefers-color-scheme: dark) {
