@@ -222,7 +222,7 @@ export default function VaultPage() {
             ['Next 7d', srs.upcoming.reduce((s, u) => s + u.count, 0), undefined],
           ].map(([label, value, color]) => (
             <div key={String(label)} className="bg-gray-50 rounded-lg py-2.5 px-3">
-              <div className="text-lg font-medium" style={color ? { color } : undefined}>{value}</div>
+              <div className="text-lg font-medium" style={typeof color === 'string' ? { color } : undefined}>{value}</div>
               <div className="text-xs text-gray-500 mt-0.5">{label}</div>
             </div>
           ))}
