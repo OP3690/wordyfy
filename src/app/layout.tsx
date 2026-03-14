@@ -75,8 +75,11 @@ export const metadata: Metadata = {
     images: ["/og-image.png"],
   },
   icons: {
-    icon: "/favicon.ico",
-    apple: "/apple-touch-icon.png",
+    icon: [
+      { url: "/puzzle_icon.png", type: "image/png", sizes: "192x192" },
+      { url: "/favicon.ico", sizes: "any" },
+    ],
+    apple: "/puzzle_icon.png",
   },
   manifest: "/manifest.json",
   alternates: {
@@ -170,12 +173,9 @@ export default function RootLayout({
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="msapplication-TileColor" content="#6C47FF" />
         <meta name="msapplication-tap-highlight" content="no" />
+        <link rel="icon" href="/puzzle_icon.png" type="image/png" sizes="192x192" />
         <link rel="icon" href="/favicon.ico" sizes="any" />
-        <link rel="icon" href="/favicon.png" type="image/png" />
-        <link rel="apple-touch-icon" href="/icon-192x192.png" />
-        <link rel="icon" type="image/png" sizes="32x32" href="/icon-192x192.png" />
-        <link rel="icon" type="image/png" sizes="16x16" href="/icon-192x192.png" />
-        <link rel="mask-icon" href="/icon-192x192.png" color="#6C47FF" />
+        <link rel="apple-touch-icon" href="/puzzle_icon.png" />
         <script
           dangerouslySetInnerHTML={{
             __html: `
