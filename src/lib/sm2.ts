@@ -116,6 +116,36 @@ export function previewIntervals(card: SRSCard): Record<Difficulty, number> {
   };
 }
 
+/** API helper: quality 1=again, 2=hard, 3=good, 4=easy. Returns next review state for DB. */
+export function nextReview(
+  quality: number,
+  interval: number,
+  easeFactor: number,
+  repetitions: number
+): { nextReviewAt: Date; interval: number; easeFactor: number; repetitions: number } {
+  const diff: Difficulty = quality === 1 ? "again" : quality === 2 ? "hard" : quality === 3 ? "good" : "easy";
+  const t = toDateString(new Date());
+  const card: SRSCard = {
+    wordId: "",
+    easeFactor,
+    interval,
+    repetitions,
+    dueDate: t,
+    lastReviewed: t,
+    totalReviews: 0,
+    lapses: 0,
+    streak: 0,
+  };
+  const updated = reviewCard(card, diff);
+  const nextDate = addDays(new Date(), updated.interval);
+  return {
+    nextReviewAt: nextDate,
+    interval: updated.interval,
+    easeFactor: updated.easeFactor,
+    repetitions: updated.repetitions,
+  };
+}
+
 function toDateString(date: Date): string {
   return date.toISOString().split("T")[0];
 }
