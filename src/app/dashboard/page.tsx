@@ -4,13 +4,14 @@ import { useState, useEffect } from 'react';
 import { 
   Plus, Search, Volume2, CheckCircle, AlertCircle, Loader2,
   BookOpen, Trophy, MessageSquare, LogOut, CalendarDays, TrendingUp,
-  Award, Brain, ArrowRight, Star, Users, Target, X, Save
+  Award, Brain, ArrowRight, Star, Users, Target, X, Save, Flame, Bell
 } from 'lucide-react';
 import Link from 'next/link';
 import { saveWord, getStoredWords } from '@/lib/storage';
 import { Word } from '@/types/word';
 import InstallPrompt from '@/components/InstallPrompt';
 import { getUserSession, clearUserSession, restoreSession } from '@/lib/auth';
+import { StreakMilestoneModal, useStreakMilestone } from '@/components/StreakSystem';
 
 export default function Dashboard() {
   const [word, setWord] = useState('');
@@ -46,8 +47,12 @@ export default function Dashboard() {
     correctAnswers: 0,
     averageAccuracy: 0,
     currentStreak: 0,
-    longestStreak: 0
+    longestStreak: 0,
+    lastQuizDate: null as string | null
   });
+  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default');
+  const [streakReminderDismissed, setStreakReminderDismissed] = useState(false);
+  const { showMilestone, dismissMilestone } = useStreakMilestone(quizStats.currentStreak);
 
 
   const clearMessage = () => {
@@ -285,6 +290,13 @@ export default function Dashboard() {
     setMessage('');
   }, []);
 
+  // Sync notification permission on mount (client-only)
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      setNotificationPermission(Notification.permission);
+    }
+  }, []);
+
   // Refresh quiz stats when returning from quiz or page becomes visible
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -361,7 +373,8 @@ export default function Dashboard() {
           correctAnswers: data.stats.correctAnswers || 0,
           averageAccuracy: data.stats.averageAccuracy || 0,
           currentStreak: data.stats.currentStreak || 0,
-          longestStreak: data.stats.longestStreak || 0
+          longestStreak: data.stats.longestStreak || 0,
+          lastQuizDate: data.stats.lastQuizDate || null
         });
       }
     } catch (error) {
@@ -572,6 +585,68 @@ export default function Dashboard() {
               <div className="text-xs text-gray-500">Best Streak</div>
             </div>
           </div>
+
+          {/* Streak reminder: show when user has a streak and hasn't practiced today */}
+          {quizStats.currentStreak > 0 && (() => {
+            const lastQuiz = quizStats.lastQuizDate ? new Date(quizStats.lastQuizDate).toDateString() : '';
+            const today = new Date().toDateString();
+            const practicedToday = lastQuiz === today;
+            return !practicedToday && !streakReminderDismissed;
+          })() && (
+            <div className="mt-4 p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl border border-amber-200 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
+                  <Flame className="h-5 w-5 text-amber-600" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-gray-900">Don&apos;t break your streak!</p>
+                  <p className="text-xs text-gray-600">Take a quick quiz to keep your {quizStats.currentStreak} day streak.</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <Link
+                  href="/quiz"
+                  className="px-3 py-2 bg-amber-500 text-white text-sm font-medium rounded-lg hover:bg-amber-600 transition-colors"
+                >
+                  Quiz
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => setStreakReminderDismissed(true)}
+                  className="p-2 text-gray-400 hover:text-gray-600 rounded-lg"
+                  aria-label="Dismiss"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Notification permission prompt for streak reminders */}
+          {typeof window !== 'undefined' && 'Notification' in window && notificationPermission === 'default' && (
+            <div className="mt-4 p-3 bg-blue-50 rounded-xl border border-blue-200 flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <Bell className="h-4 w-4 text-blue-600 shrink-0" />
+                <p className="text-xs text-gray-700">Get reminded to practice and protect your streak.</p>
+              </div>
+              <button
+                type="button"
+                onClick={async () => {
+                  const perm = await Notification.requestPermission();
+                  setNotificationPermission(perm);
+                  if (perm === 'granted' && !document.hidden) {
+                    new Notification('WordyFy', {
+                      body: "You're all set! We'll remind you when it's time to practice.",
+                      icon: '/puzzle_icon.png'
+                    });
+                  }
+                }}
+                className="px-3 py-1.5 bg-blue-500 text-white text-xs font-medium rounded-lg hover:bg-blue-600 shrink-0"
+              >
+                Enable
+              </button>
+            </div>
+          )}
             </div>
 
         {/* Add Word Section - Minimal */}
@@ -921,6 +996,11 @@ export default function Dashboard() {
             </div>
           </div>
         )}
+
+      {/* Streak milestone share modal (7, 14, 30, 50, 100 days) */}
+      {showMilestone != null && (
+        <StreakMilestoneModal streak={showMilestone} onClose={dismissMilestone} siteName="WordyFy" />
+      )}
     </div>
   );
 }

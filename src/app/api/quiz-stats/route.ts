@@ -80,13 +80,23 @@ export async function POST(request: NextRequest) {
     const currentStats = await statsCollection.findOne({ userId });
 
     const now = new Date();
-    const isNewDay = !currentStats?.lastQuizDate || 
-      new Date(currentStats.lastQuizDate).toDateString() !== now.toDateString();
+    const today = now.toDateString();
+    const lastDate = currentStats?.lastQuizDate
+      ? new Date(currentStats.lastQuizDate).toDateString()
+      : null;
+    const isSameDay = lastDate === today;
+    const yesterday = new Date(now);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const isConsecutiveDay = lastDate === yesterday.toDateString();
 
-    // Calculate new streak
-    let newCurrentStreak = 1; // Start with 1 for this quiz
-    if (currentStats && isNewDay) {
-      newCurrentStreak = (currentStats.currentStreak || 0) + 1;
+    // Streak: only increment if last quiz was yesterday; same day = keep streak; else reset to 1
+    let newCurrentStreak = 1;
+    if (currentStats?.lastQuizDate) {
+      if (isSameDay) {
+        newCurrentStreak = Math.max(1, currentStats.currentStreak || 0);
+      } else if (isConsecutiveDay) {
+        newCurrentStreak = (currentStats.currentStreak || 0) + 1;
+      }
     }
 
     const newStats: Partial<QuizStats> = {

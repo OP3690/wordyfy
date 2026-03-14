@@ -8,6 +8,8 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { QuizQuestion } from '@/types/word';
+import { trackQuizCompleted } from '@/lib/analytics';
+import ShareCard from '@/components/ShareCard';
 
 export default function QuizPage() {
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
@@ -26,6 +28,8 @@ export default function QuizPage() {
   const [totalWords, setTotalWords] = useState(0);
   const [wordsCompleted, setWordsCompleted] = useState(0);
   const [quizResults, setQuizResults] = useState<Array<{question: any, isCorrect: boolean}>>([]);
+  const [completedResultFlags, setCompletedResultFlags] = useState<boolean[]>([]);
+  const [updatedStreak, setUpdatedStreak] = useState<number | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -155,7 +159,7 @@ export default function QuizPage() {
     }
   };
 
-  const saveQuizStats = async (finalScore: number, totalQuestions: number, quizQuestions: any[]) => {
+  const saveQuizStats = async (finalScore: number, totalQuestions: number, quizQuestions: any[], resultFlags: boolean[]) => {
     try {
       const userId = localStorage.getItem('userId');
       if (!userId) return;
@@ -177,16 +181,21 @@ export default function QuizPage() {
       });
       
       if (response.ok) {
+        const data = await response.json();
+        setCompletedResultFlags(resultFlags);
+        setUpdatedStreak(data.stats?.currentStreak ?? null);
+        trackQuizCompleted(score, questions.length, data.stats?.currentStreak);
         console.log('✅ Quiz stats saved successfully');
-        // Dispatch custom event to notify dashboard of stats update
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new CustomEvent('quizStatsUpdated'));
         }
       } else {
         console.error('❌ Failed to save quiz stats');
+        setCompletedResultFlags(resultFlags);
       }
     } catch (error) {
       console.error('❌ Error saving quiz stats:', error);
+      setCompletedResultFlags(resultFlags);
     }
   };
 
@@ -218,17 +227,18 @@ export default function QuizPage() {
         question: currentQ,
         isCorrect: isCorrect
       }];
+      const resultFlags = finalResults.map(r => r.isCorrect);
       
-      // Format quiz questions for the API
       const formattedQuestions = finalResults.map(result => ({
         _id: result.question._id,
         englishWord: result.question.englishWord,
         isCorrect: result.isCorrect
       }));
       
-      saveQuizStats(score, questions.length, formattedQuestions);
+      setCompletedResultFlags(resultFlags);
       setGameCompleted(true);
       setAllWordsCompleted(true);
+      saveQuizStats(score, questions.length, formattedQuestions, resultFlags);
     }
   };
 
@@ -363,49 +373,48 @@ export default function QuizPage() {
   }
 
       if (gameCompleted) {
+        const quizResult = {
+          score,
+          total: questions.length,
+          answers: completedResultFlags.length
+            ? completedResultFlags.map((correct) => (correct ? 'correct' as const : 'wrong' as const))
+            : [],
+          streak: updatedStreak ?? 0,
+          date: new Date().toISOString(),
+        };
+
         return (
       <div className="min-h-screen bg-gray-50">
-        <div className="flex items-center justify-center min-h-screen px-4">
-          <div className="bg-white rounded-2xl p-6 max-w-sm w-full text-center shadow-sm">
-            {/* Success Animation */}
+        <div className="flex flex-col items-center justify-center min-h-screen px-4 py-8">
+          <div className="w-full max-w-sm text-center mb-6">
             <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <Trophy className="h-8 w-8 text-green-600" />
-              </div>
-            
+            </div>
             <h1 className="text-xl font-semibold text-gray-900 mb-2">Quiz Complete!</h1>
             <p className="text-sm text-gray-600 mb-4">{getScoreMessage()}</p>
-            
-            {/* Score Display */}
-            <div className="bg-gray-50 rounded-xl p-4 mb-6">
-              <div className="text-2xl font-bold text-blue-600 mb-1">{score}/{questions.length}</div>
-              <div className="text-sm text-gray-600 mb-2">Correct Answers</div>
-              <div className={`text-lg font-semibold ${getScoreColor()}`}>
-                {Math.round((score / questions.length) * 100)}%
-              </div>
-              </div>
-              
-            {/* Action Buttons */}
-            <div className="space-y-2">
-                <button
-                  onClick={handleRestart}
-                className="w-full px-4 py-2.5 bg-blue-500 text-white text-sm font-medium rounded-xl hover:bg-blue-600 transition-colors flex items-center justify-center space-x-2"
-                >
-                <RotateCcw className="h-4 w-4" />
-                  <span>Play Again</span>
-                </button>
-                <Link
-                  href="/dashboard"
-                onClick={() => {
-                  // Force refresh dashboard stats
-                  if (typeof window !== 'undefined') {
-                    window.location.href = '/dashboard';
-                  }
-                }}
-                className="block w-full px-4 py-2.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-xl hover:bg-gray-200 transition-colors"
-              >
-                Back to Dashboard
-                </Link>
-            </div>
+          </div>
+
+          <ShareCard result={quizResult} />
+
+          <div className="w-full max-w-sm space-y-2 mt-6">
+            <button
+              onClick={handleRestart}
+              className="w-full px-4 py-2.5 bg-blue-500 text-white text-sm font-medium rounded-xl hover:bg-blue-600 transition-colors flex items-center justify-center space-x-2"
+            >
+              <RotateCcw className="h-4 w-4" />
+              <span>Play Again</span>
+            </button>
+            <Link
+              href="/dashboard"
+              onClick={() => {
+                if (typeof window !== 'undefined') {
+                  window.location.href = '/dashboard';
+                }
+              }}
+              className="block w-full px-4 py-2.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-xl hover:bg-gray-200 transition-colors text-center"
+            >
+              Back to Dashboard
+            </Link>
           </div>
         </div>
       </div>
